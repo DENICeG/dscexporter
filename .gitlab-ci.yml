@@ -1,0 +1,17 @@
+include:
+  - project: "denic-eg/dns/templates/ci-templates"
+    file:
+      - ".global-tags.yml"
+      - ".global-variables.yml"
+      - ".gitlab-ci-template-k8s.yml"
+
+default:
+  image: ${DENIC_DOCKER_REGISTRY}/team-dns/ci-pipelinetools:latest
+
+stages:
+  - prepare
+
+test-echo:
+  stage: prepare
+  script: 
+    - echo "Hello World!"
