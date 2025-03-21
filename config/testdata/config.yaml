@@ -1,0 +1,21 @@
+prometheus:
+  port: 2113
+  metrics: 
+    pcap_stats: {}
+    second_ld_vs_rcode:
+      aggregations: 
+        SecondLD:
+          type: MaxCells
+          params: 
+            x: 5
+    priming_responses: 
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 22
+
+interval: 20s
+remove: true

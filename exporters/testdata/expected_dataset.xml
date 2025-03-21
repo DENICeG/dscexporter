@@ -1,0 +1,44 @@
+<array name="second_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600">
+	<dimension number="1" type="Rcode"/>
+	<dimension number="2" type="SecondLD"/>
+	<data>
+		<Rcode val="0">
+		  	<SecondLD val="-:SKIPPED:-" count="10"/>
+		  	<SecondLD val="-:SKIPPED_SUM:-" count="100"/>
+		</Rcode>
+		<Rcode val="1">
+			<SecondLD val="-:SKIPPED:-" count="5"/>
+			<SecondLD val="-:SKIPPED_SUM:-" count="15"/>
+			<SecondLD val="sld10.de" count="10"/>
+			<SecondLD val="sld9.de" count="9"/>
+			<SecondLD val="sld8.de" count="8"/>
+			<SecondLD val="sld7.de" count="7"/>
+		  	<SecondLD val="sld6.de" count="6"/>	  
+		</Rcode>
+		<Rcode val="2">
+		 	<SecondLD val="-:SKIPPED:-" count="6"/>
+		  	<SecondLD val="-:SKIPPED_SUM:-" count="16"/>
+		  	<SecondLD val="sld10.de" count="10"/>
+			<SecondLD val="sld9.de" count="9"/>
+			<SecondLD val="sld8.de" count="8"/>
+			<SecondLD val="sld7.de" count="7"/>
+		  	<SecondLD val="sld6.de" count="6"/>	  
+		</Rcode>
+	  	<Rcode val="3"> <!-- Less than x cells already-->
+		  	<SecondLD val="sld10.de" count="10"/>
+			<SecondLD val="sld9.de" count="9"/>
+			<SecondLD val="sld8.de" count="8"/>
+			<SecondLD val="sld7.de" count="7"/>
+		  	<SecondLD val="sld6.de" count="6"/>	
+		</Rcode>
+	  	<Rcode val="4">  <!-- Less than x cells already with skipped-->
+	 		<SecondLD val="-:SKIPPED:-" count="10"/>
+			<SecondLD val="-:SKIPPED_SUM:-" count="100"/>
+			<SecondLD val="sld10.de" count="10"/>
+			<SecondLD val="sld9.de" count="9"/>
+			<SecondLD val="sld8.de" count="8"/>
+			<SecondLD val="sld7.de" count="7"/>
+		  	<SecondLD val="sld6.de" count="6"/>	
+		</Rcode>
+	</data>
+</array>

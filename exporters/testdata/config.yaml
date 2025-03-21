@@ -1,0 +1,19 @@
+prometheus:
+  metrics: 
+    pcap_stats: {}
+    second_ld_vs_rcode:
+      aggregations: 
+        SecondLD:
+          type: MaxCells
+          params: 
+            x: 5
+    priming_responses: 
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 22
+    priming_queries: {}
+    

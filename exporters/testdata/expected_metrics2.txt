@@ -1,0 +1,57 @@
+# HELP dsc_exporter_parsed_files How many files the dsc exporter parsed for each ns
+# TYPE dsc_exporter_parsed_files counter
+dsc_exporter_parsed_files{ns="ns"} 2
+# HELP dsc_exporter_pcap_stats DSC-Metric from dataset pcap_stats
+# TYPE dsc_exporter_pcap_stats counter
+dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="filter_received"} 16
+dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="pkts_captured"} 16
+# HELP dsc_exporter_priming_queries DSC-Metric from dataset priming_queries
+# TYPE dsc_exporter_priming_queries counter
+dsc_exporter_priming_queries{EDNSBufSiz="1024-1535",Transport="tcp",ns="ns"} 3
+dsc_exporter_priming_queries{EDNSBufSiz="1024-1535",Transport="udp",ns="ns"} 3
+dsc_exporter_priming_queries{EDNSBufSiz="1536-2047",Transport="udp",ns="ns"} 2
+dsc_exporter_priming_queries{EDNSBufSiz="2048-2559",Transport="udp",ns="ns"} 3
+dsc_exporter_priming_queries{EDNSBufSiz="3584-4095",Transport="udp",ns="ns"} 3
+dsc_exporter_priming_queries{EDNSBufSiz="4096-4607",Transport="tcp",ns="ns"} 4
+dsc_exporter_priming_queries{EDNSBufSiz="4096-4607",Transport="udp",ns="ns"} 1
+dsc_exporter_priming_queries{EDNSBufSiz="512-1023",Transport="tcp",ns="ns"} 2
+dsc_exporter_priming_queries{EDNSBufSiz="512-1023",Transport="udp",ns="ns"} 5
+dsc_exporter_priming_queries{EDNSBufSiz="8192-8703",Transport="udp",ns="ns"} 1
+dsc_exporter_priming_queries{EDNSBufSiz="None",Transport="tcp",ns="ns"} 1
+dsc_exporter_priming_queries{EDNSBufSiz="None",Transport="udp",ns="ns"} 4
+# HELP dsc_exporter_priming_responses DSC-Metric from dataset priming_responses
+# TYPE dsc_exporter_priming_responses histogram
+dsc_exporter_priming_responses_bucket{ns="ns",le="0"} 0
+dsc_exporter_priming_responses_bucket{ns="ns",le="50"} 0
+dsc_exporter_priming_responses_bucket{ns="ns",le="100"} 0
+dsc_exporter_priming_responses_bucket{ns="ns",le="150"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="200"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="250"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="300"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="350"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="400"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="450"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="500"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="550"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="600"} 455
+dsc_exporter_priming_responses_bucket{ns="ns",le="650"} 5484
+dsc_exporter_priming_responses_bucket{ns="ns",le="700"} 5484
+dsc_exporter_priming_responses_bucket{ns="ns",le="750"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="800"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="850"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="900"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="950"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="1000"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="1050"} 5820
+dsc_exporter_priming_responses_bucket{ns="ns",le="+Inf"} 5820
+dsc_exporter_priming_responses_sum{ns="ns"} 3.431925e+06
+dsc_exporter_priming_responses_count{ns="ns"} 5820
+# HELP dsc_exporter_second_ld_vs_rcode DSC-Metric from dataset second_ld_vs_rcode
+# TYPE dsc_exporter_second_ld_vs_rcode counter
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="-:SKIPPED:-",ns="ns"} 6
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="-:SKIPPED_SUM:-",ns="ns"} 16
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld10.de",ns="ns"} 10
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld6.de",ns="ns"} 6
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld7.de",ns="ns"} 7
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld8.de",ns="ns"} 8
+dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld9.de",ns="ns"} 9

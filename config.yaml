@@ -1,0 +1,90 @@
+prometheus:
+
+  metrics: 
+    pcap_stats: {}
+    servfail_qname:
+      aggregations: 
+        Qname:
+          type: MaxCells
+          params: 
+            x: 3
+    qr_aa_bits: {}
+    priming_responses: 
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 22
+    priming_queries: {}
+    dns_ip_version_vs_qtype: {}
+    direction_vs_ipproto: {}
+    third_ld_vs_rcode:
+      aggregations: 
+        ThirdLD:
+          type: MaxCells
+          params: 
+            x: 3
+    second_ld_vs_rcode:
+      aggregations: 
+        SecondLD:
+          type: MaxCells
+          params: 
+            x: 3
+    client_port_range: {} #ToDo: Parse to bucket?
+    transport_vs_qtype: {}
+    ipv6_rsn_abusers: {}
+    idn_vs_tld: {}
+    rd_bit: {}
+    do_bit: {}
+    edns_bufsiz: {} #ToDo: Parse to bucket?
+    edns_version: {}
+    idn_qname: {}
+    chaos_types_and_names: 
+      aggregations: 
+        Qname:
+          type: MaxCells
+          params: 
+            x: 3
+    client_addr_vs_rcode: 
+      aggregations: 
+        ClientAddr:
+          type: MaxCells
+          params: 
+            x: 3
+    client_subnet2:
+      aggregations: 
+        ClientSubnet:
+          type: MaxCells
+          params: 
+            x: 3
+    certain_qnames_vs_qtype: {}
+    qtype_vs_tld: {}
+    qtype_vs_qnamelen: 
+      aggregations: 
+        QnameLen:
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 22 
+    client_subnet: 
+      aggregations: 
+        ClientSubnet:
+          type: MaxCells
+          params: 
+            x: 3
+    rcode_vs_replylen:
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 22
+    opcode: {}
+    rcode: {}
+    qtype: {}
+
+interval: 1s

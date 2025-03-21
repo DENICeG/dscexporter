@@ -1,0 +1,18 @@
+<dscdata>
+<array name="pcap_stats" dimensions="2" start_time="1741170540" stop_time="1741170600">
+  <dimension number="1" type="ifname"/>
+  <dimension number="2" type="pcap_stat"/>
+  <data>
+    <ifname val="ens2f0">
+      <pcap_stat val="filter_received" count="8"/>
+      <pcap_stat val="pkts_captured" count="8"/>
+    </ifname>
+  </data>
+</array>
+<array name="servfail_qname" dimensions="2" start_time="1741170540" stop_time="1741170600">
+  <dimension number="1" type="ALL"/>
+  <dimension number="2" type="Qname"/>
+  <data>
+  </data>
+</array>
+</dscdata>
