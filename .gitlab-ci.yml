@@ -14,4 +14,4 @@ stages:
 test-echo:
   stage: prepare
   script: 
-    - echo "Hello World2!"
+    - echo "Hello World3!"
