@@ -1,13 +1,14 @@
 package scheduler
 
 import (
-	"dscexporter/config"
-	"dscexporter/exporters"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/exporters"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -1,12 +1,13 @@
 package exporters
 
 import (
-	"dscexporter/config"
-	"dscexporter/dscparser"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/dscparser"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

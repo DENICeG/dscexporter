@@ -1,15 +1,16 @@
 package scheduler
 
 import (
-	"dscexporter/config"
-	"dscexporter/dscparser"
-	"dscexporter/exporters"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/dscparser"
+	"github.com/DENICeG/dscexporter/exporters"
 )
 
 func checkError(err error) {
