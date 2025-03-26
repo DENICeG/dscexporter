@@ -1,10 +1,11 @@
 package exporters
 
 import (
-	"dscexporter/config"
-	"dscexporter/dscparser"
 	"reflect"
 	"testing"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/dscparser"
 )
 
 func TestMaxCells(t *testing.T) {

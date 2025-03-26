@@ -1,11 +1,12 @@
 package main
 
 import (
-	"dscexporter/config"
-	"dscexporter/exporters"
-	"dscexporter/scheduler"
 	"os"
 	"slices"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/exporters"
+	"github.com/DENICeG/dscexporter/scheduler"
 
 	"github.com/alecthomas/kingpin/v2"
 )

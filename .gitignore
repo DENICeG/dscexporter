@@ -1,2 +1,4 @@
 *.dscdata.xml
 datasets_de.txt
+build
+cover.out

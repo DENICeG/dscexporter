@@ -1,13 +1,14 @@
 package exporters
 
 import (
-	"dscexporter/config"
-	"dscexporter/dscparser"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/dscparser"
 
 	"github.com/stretchr/testify/assert"
 )

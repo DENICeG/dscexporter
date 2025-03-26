@@ -2,11 +2,12 @@ package exporters
 
 import (
 	"cmp"
-	"dscexporter/config"
-	"dscexporter/dscparser"
 	"encoding/xml"
 	"slices"
 	"strings"
+
+	"github.com/DENICeG/dscexporter/config"
+	"github.com/DENICeG/dscexporter/dscparser"
 )
 
 //ToDo: Keine MaxRows! Einfach keine Änderung.
