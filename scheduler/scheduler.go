@@ -44,6 +44,7 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 				if !dscFile.IsDir() && strings.HasSuffix(dscFile.Name(), ".dscdata.xml") {
 
 					dscFilePath := filepath.Join(nsFolderPath, dscFile.Name())
+					fmt.Println("Parsing dsc file: " + dscFilePath)
 					dscData := dscparser.ReadFile(dscFilePath, locationFolder.Name(), nsFolder.Name())
 					exporter.ExportDSCData(dscData)
 
