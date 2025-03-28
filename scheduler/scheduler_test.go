@@ -71,11 +71,7 @@ func TestReadAndExportDir(t *testing.T) {
 
 	ReadAndExportDir(config, prometheusExporter)
 
-	time.Sleep(1 * time.Second)
-
 	metrics := getMetrics(t, config)
-
-	t.Log(metrics)
 
 	assert.Contains(t, metrics, `dsc_exporter_parsed_files{ns="ns-1.loc1.de"} 2`)
 	assert.Contains(t, metrics, `dsc_exporter_parsed_files{ns="ns-2.loc1.de"} 1`)
