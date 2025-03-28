@@ -71,6 +71,8 @@ func TestReadAndExportDir(t *testing.T) {
 
 	ReadAndExportDir(config, prometheusExporter)
 
+	time.Sleep(1 * time.Second)
+
 	metrics := getMetrics(t, config)
 
 	t.Log(metrics)
