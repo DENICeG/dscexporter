@@ -45,6 +45,7 @@ func TestPrometheusExporter(t *testing.T) {
 	expected_metrics, err := os.ReadFile("./testdata/expected_metrics.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, metrics, string(expected_metrics))
+	t.Log(metrics)
 
 	//Export another dsc file and check if its correctly exported too
 	dscData2 := dscparser.ReadFile("./testdata/test_dsc_file2.xml", "loc", "ns")
