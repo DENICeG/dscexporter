@@ -42,4 +42,4 @@ build-linux: info dep
 unittests:
 	CGO_ENABLED=0 go test -v -count=1 -cover -coverprofile cover.out -p 1 $(addprefix $(PKG)/, $(TEST_PKG_LIST))
 
-test: unittest
+test: unittests
