@@ -64,7 +64,7 @@ func getMetrics(t *testing.T, config config.Config) string {
 }
 
 func TestReadAndExportDir(t *testing.T) {
-	config := config.ParseConfigText([]byte("data: ./testdata/dsc-data\nremove: false"))
+	config := config.ParseConfigText([]byte("data: ./testdata/dsc-data\nremove: false\nport: 2113"))
 
 	prometheusExporter := exporters.NewPrometheusExporter(config)
 	go prometheusExporter.StartPrometheusExporter()
