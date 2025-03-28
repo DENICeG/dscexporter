@@ -73,6 +73,8 @@ func TestReadAndExportDir(t *testing.T) {
 
 	metrics := getMetrics(t, config)
 
+	t.Log(metrics)
+
 	assert.Contains(t, metrics, `dsc_exporter_parsed_files{ns="ns-1.loc1.de"} 2`)
 	assert.Contains(t, metrics, `dsc_exporter_parsed_files{ns="ns-2.loc1.de"} 1`)
 	assert.Contains(t, metrics, `dsc_exporter_parsed_files{ns="ns-1.loc2.de"} 1`)
