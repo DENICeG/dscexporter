@@ -1,3 +1,3 @@
 # dscexporter
 
-A prometheus exporter for DSC files.
+A prometheus exporter for DSC files written in golang.
