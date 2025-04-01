@@ -27,6 +27,7 @@ jobs:
         path: cover.out
       
   build: 
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +47,7 @@ jobs:
           path: ./build/linux/dscexporter
 
   upload-release-asset:
+    needs: build
     name: Upload Release Asset
     runs-on: ubuntu-latest
     steps:
