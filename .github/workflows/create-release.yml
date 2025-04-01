@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download binary
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dscexporter
       # - name: Build project # This would actually build your project, using zip for an example artifact
