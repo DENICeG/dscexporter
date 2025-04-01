@@ -4,8 +4,12 @@
 name: Test Go
 
 on: 
-  push: {}
-  pull_request: {}
+  push: 
+    branches-ignore:
+      - master
+  pull_request:
+    branches-ignore:
+      - master
 
 jobs:
 
