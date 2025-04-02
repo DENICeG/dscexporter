@@ -48,11 +48,37 @@ jobs:
           name: dscexporter
           path: ./build/linux/dscexporter
 
+  
+  get-branches-containing-tag:
+    # @see https://stackoverflow.com/a/77727776
+    name: Get branches containing tag
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(needs.get-branches-containing-tag.outputs.branch, 'main')}}
+    outputs:
+      branch: ${{ steps.check_step.outputs.branches }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get current branch
+        id: check_step
+        # 1. Get the list of branches ref where this tag exists
+        # 2. Remove 'origin/' from that result
+        # 3. Put that string in output
+        # => We can now use function 'contains(list, item)''
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branches="$(echo ${raw//origin\//} | tr -d '\n')"
+          echo "branches={names}" >> $GITHUB_OUTPUT
+          echo "Branches where this tag exists : $branches."
+
   upload-release-asset:
-    needs: build
+    needs: 
+      - build
+      - get-branches-containing-tag
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v')}}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(needs.get-branches-containing-tag.outputs.branch, 'main')}}
     steps:
       - name: Download binary
         uses: actions/download-artifact@v4
