@@ -49,12 +49,12 @@ jobs:
           path: ./build/linux/dscexporter
 
   
-  get-branches-containing-tag:
-    name: Get branches containing tag
+  check-banch:
+    name: Check weather the tag exists on the main branch
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v')}}
     outputs:
-      branch: ${{ steps.check_step.outputs.branches }}
+      is_main: ${{ steps.check_step.outputs.is_main }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -63,14 +63,15 @@ jobs:
 
       - name: Get current branch
         id: check_step
-        # 1. Get the list of branches ref where this tag exists
-        # 2. Remove 'origin/' from that result
-        # 3. Put that string in output
-        # => We can now use function 'contains(list, item)''
         run: |
-          branches=$(git branch -r --contains ${{ github.ref }})
-          echo "branches= $branches " >> $GITHUB_OUTPUT
-          echo "Branches where this tag exists: $branches."
+          branch=$(git branch --list -r origin/main --contains ${{ github.ref }})
+          echo $branch
+          if [[ "$branch" == "origin/main" ]]; then
+            echo "is_main=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_main=false" >> $GITHUB_OUTPUT
+          fi
+
 
   upload-release-asset:
     needs: 
@@ -78,7 +79,7 @@ jobs:
       - get-branches-containing-tag
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(needs.get-branches-containing-tag.outputs.branch, ' main ')}}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.get-branches-containing-tag.outputs.is_main == 'true'}}
     steps:
       - name: Download binary
         uses: actions/download-artifact@v4
