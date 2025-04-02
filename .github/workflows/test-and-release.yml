@@ -64,14 +64,13 @@ jobs:
       - name: Get current branch
         id: check_step
         run: |
-          branch=$(git branch --list -r origin/main --contains ${{ github.ref }})
+          branch=$(git branch --list -r origin/main --contains ${{ github.ref }} | tr -d ' ')
           echo $branch
           if [[ "$branch" == "origin/main" ]]; then
             echo "is_main=true" >> $GITHUB_OUTPUT
           else
             echo "is_main=false" >> $GITHUB_OUTPUT
           fi
-
 
   upload-release-asset:
     needs: 
