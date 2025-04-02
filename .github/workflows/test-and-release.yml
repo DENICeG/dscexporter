@@ -49,7 +49,7 @@ jobs:
           path: ./build/linux/dscexporter
 
   
-  check-banch:
+  check-branch:
     name: Check weather the tag exists on the main branch
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v')}}
@@ -71,16 +71,23 @@ jobs:
           else
             echo "is_main=false" >> $GITHUB_OUTPUT
           fi
+          echo $GITHUB_OUTPUT
 
 
   upload-release-asset:
     needs: 
       - build
-      - check-banch
+      - check-branch
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.check-banch.outputs.is_main == 'true'}}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.check-branch.outputs.is_main == 'true'}}
     steps:
+      - name: Print debug output
+        run: |
+          echo ${{needs.check-branch.outputs.is_main}}
+          echo ${{needs.check-branch.outputs.is_main == 'true'}}
+          echo ${{ startsWith(github.ref, 'refs/tags/v')}}
+
       - name: Download binary
         uses: actions/download-artifact@v4
         with:
