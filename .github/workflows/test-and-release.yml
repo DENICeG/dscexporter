@@ -68,13 +68,9 @@ jobs:
         # 3. Put that string in output
         # => We can now use function 'contains(list, item)''
         run: |
-          echo $(git branch -r)
-          raw=$(git branch -r --contains refs/tags/v0.0.11)
-          echo $raw 
-          branches="$(echo ${raw//origin\//} | tr -d '\n')"
-          echo $branches
-          echo "branches=$branches" >> $GITHUB_OUTPUT
-          echo "Branches where this tag exists : $branches."
+          branches=$(git branch -r --contains ${{ github.ref }})
+          echo "branches= $branches " >> $GITHUB_OUTPUT
+          echo "Branches where this tag exists: $branches."
 
   upload-release-asset:
     needs: 
@@ -82,7 +78,7 @@ jobs:
       - get-branches-containing-tag
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(needs.get-branches-containing-tag.outputs.branch, 'main')}}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && contains(needs.get-branches-containing-tag.outputs.branch, ' main ')}}
     steps:
       - name: Download binary
         uses: actions/download-artifact@v4
