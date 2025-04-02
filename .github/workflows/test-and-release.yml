@@ -76,7 +76,7 @@ jobs:
   upload-release-asset:
     needs: 
       - build
-      - get-branches-containing-tag
+      - check-banch
     name: Upload Release Asset
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.get-branches-containing-tag.outputs.is_main == 'true'}}
