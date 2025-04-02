@@ -78,7 +78,7 @@ jobs:
       - check-branch
     name: Upload Release Asset
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v' && needs.check-branch.outputs.is_main == 'true') }} 
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && needs.check-branch.outputs.is_main == 'true' }} 
     steps:
       # - name: Print debug output
       #   run: |
