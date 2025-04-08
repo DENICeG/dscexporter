@@ -10,7 +10,7 @@ import (
 )
 
 const DefaultInterval = 15 * time.Second
-const DefaultDataDir = "/data/dsc_exporter"
+const DefaultDataDir = "/data/exporter_dsc"
 const DefaultRemoveReadFiles = false
 const DefaultPrometheusPort = 2112
 
