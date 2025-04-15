@@ -16,4 +16,7 @@ prometheus:
             width: 50
             count: 22
     priming_queries: {}
-    
+    third_ld_vs_rcode:
+      aggregations: 
+        ThirdLD:
+          type: EliminateDimension

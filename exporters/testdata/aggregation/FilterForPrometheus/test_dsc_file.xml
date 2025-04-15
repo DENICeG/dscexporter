@@ -64,4 +64,21 @@
     </All>
   </data>
 </array>
+<array name="third_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600">
+	<dimension number="1" type="Rcode"/>
+	<dimension number="2" type="ThirdLD"/>
+	<data>
+	  	<Rcode val="0">
+        <ThirdLD val="sld1.de" count="1"/>
+        <ThirdLD val="sld2.de" count="2"/>
+        <ThirdLD val="sld3.de" count="3"/>
+        <ThirdLD val="sld4.de" count="4"/>
+        <ThirdLD val="sld5.de" count="5"/>
+	  	</Rcode>
+	 	  <Rcode val="1">
+        <ThirdLD val="sld1.de" count="1"/>
+        <ThirdLD val="sld2.de" count="2"/>
+	  	</Rcode>
+	</data>
+</array>
 </dscdata>

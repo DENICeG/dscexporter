@@ -1,0 +1,15 @@
+<array name="second_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600">
+	<dimension number="1" type="Rcode"/>
+	<dimension number="2" type="All"/>
+	<data>
+	  	<Rcode val="0">
+			<All val="All" count="15"/>
+	  	</Rcode>
+	 	 <Rcode val="1">
+			<All val="All" count="55"/>
+	  	</Rcode>
+	  	<Rcode val="2">
+			<All val="All" count="1"/>
+	  	</Rcode>
+	</data>
+</array>

@@ -56,7 +56,7 @@ func getMetrics(t *testing.T, config config.Config) string {
 
 	defer resp.Body.Close()
 
-	assert.Equal(t, resp.StatusCode, 200)
+	assert.Equal(t, 200, resp.StatusCode)
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err, "Unexpected error")
 

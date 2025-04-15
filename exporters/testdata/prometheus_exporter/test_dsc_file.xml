@@ -1,0 +1,84 @@
+<dscdata>
+<array name="pcap_stats" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Prometheus exporter counter, dataset is in both dsc files-->
+  <dimension number="1" type="ifname"/>
+  <dimension number="2" type="pcap_stat"/>
+  <data>
+    <ifname val="ens2f0">
+      <pcap_stat val="filter_received" count="8"/>
+      <pcap_stat val="pkts_captured" count="8"/>
+    </ifname>
+  </data>
+</array>
+<array name="qr_aa_bits" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test FilterForPrometheus (Dataset not in config)-->
+  <dimension number="1" type="Direction"/>
+  <dimension number="2" type="QRAABits"/>
+  <data>
+    <Direction val="sent">
+      <QRAABits val="cXI9MSxhYT0w" base64="1" count="1"/>
+      <QRAABits val="cXI9MSxhYT0x" base64="1" count="8"/>
+    </Direction>
+    <Direction val="recv">
+      <QRAABits val="cXI9MCxhYT0w" base64="1" count="7"/>
+    </Direction>
+  </data>
+</array>
+<array name="second_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Max Cells-->
+	<dimension number="1" type="Rcode"/>
+	<dimension number="2" type="SecondLD"/>
+	<data>
+	  	<Rcode val="2">
+			<SecondLD val="sld1.de" count="1"/>
+			<SecondLD val="sld2.de" count="2"/>
+			<SecondLD val="sld3.de" count="3"/>
+			<SecondLD val="sld4.de" count="4"/>
+			<SecondLD val="sld5.de" count="5"/>
+			<SecondLD val="sld6.de" count="6"/>
+			<SecondLD val="sld7.de" count="7"/>
+			<SecondLD val="sld8.de" count="8"/>
+			<SecondLD val="sld9.de" count="9"/>
+			<SecondLD val="sld10.de" count="10"/>
+			<SecondLD val="-:SKIPPED:-" count="1"/>
+			<SecondLD val="-:SKIPPED_SUM:-" count="1"/>
+	  	</Rcode>
+	</data>
+</array>
+<array name="priming_responses" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Buckets-->
+  <dimension number="1" type="All"/>
+  <dimension number="2" type="ReplyLen"/>
+  <data>
+    <All val="ALL">
+      <ReplyLen val="620" count="501"/>
+      <ReplyLen val="624" count="471"/>
+      <ReplyLen val="622" count="465"/>
+      <ReplyLen val="621" count="457"/>
+      <ReplyLen val="132" count="455"/>
+      <ReplyLen val="619" count="448"/>
+      <ReplyLen val="623" count="425"/>
+      <ReplyLen val="625" count="413"/>
+      <ReplyLen val="626" count="400"/>
+      <ReplyLen val="629" count="399"/>
+      <ReplyLen val="627" count="385"/>
+      <ReplyLen val="618" count="350"/>
+      <ReplyLen val="706" count="336"/>
+      <ReplyLen val="628" count="315"/>
+    </All>
+  </data>
+</array>
+<array name="third_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test EliminateDimensionTwo-->
+	<dimension number="1" type="Rcode"/>
+	<dimension number="2" type="ThirdLD"/>
+	<data>
+	  	<Rcode val="0">
+        <ThirdLD val="sld1.de" count="1"/>
+        <ThirdLD val="sld2.de" count="2"/>
+        <ThirdLD val="sld3.de" count="3"/>
+        <ThirdLD val="sld4.de" count="4"/>
+        <ThirdLD val="sld5.de" count="5"/>
+	  	</Rcode>
+	 	  <Rcode val="1">
+        <ThirdLD val="sld1.de" count="1"/>
+        <ThirdLD val="sld2.de" count="2"/>
+	  	</Rcode>
+	</data>
+</array>
+</dscdata>

@@ -63,6 +63,35 @@ func MaxCells(dataset *dscparser.Dataset, x int) {
 
 }
 
+func EliminateDimensionOne(dataset *dscparser.Dataset) {
+	dataset.DimensionInfo[0].Type = "All"
+	cells := make(map[string]int)
+
+	for _, row := range dataset.Data.Rows {
+		for _, cell := range row.Cells {
+			cells[cell.Value] = cells[cell.Value] + cell.Count
+		}
+	}
+	cellObjects := make([]dscparser.Cell, 0, len(cells))
+	for value, count := range cells {
+		cellObjects = append(cellObjects, dscparser.Cell{XMLName: xml.Name{Local: dataset.DimensionInfo[1].Type}, Value: value, Count: count})
+	}
+	row := dscparser.Row{XMLName: xml.Name{Local: "All"}, Value: "All", Cells: cellObjects}
+	dataset.Data.Rows = []dscparser.Row{row}
+}
+
+func EliminateDimensionTwo(dataset *dscparser.Dataset) {
+	dataset.DimensionInfo[1].Type = "All"
+	for i := range dataset.Data.Rows {
+		row := &dataset.Data.Rows[i]
+		sum := 0
+		for _, cell := range row.Cells {
+			sum += cell.Count
+		}
+		row.Cells = []dscparser.Cell{dscparser.Cell{XMLName: xml.Name{Local: "All"}, Value: "All", Count: sum}}
+	}
+}
+
 func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 
 	var newDatasets []dscparser.Dataset
@@ -73,13 +102,21 @@ func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 			continue
 		}
 
-		//label1 := dataset.DimensionInfo[0].Type
+		label1 := dataset.DimensionInfo[0].Type
+		aggregationDim1, ok := metricConfig.Aggregations[label1]
+
+		if ok && strings.EqualFold(aggregationDim1.Type, "EliminateDimension") {
+			EliminateDimensionOne(&dscData.Datasets[i])
+		}
+
 		label2 := dataset.DimensionInfo[1].Type
+		aggregationDim2, ok := metricConfig.Aggregations[label2]
 
-		aggregation, ok := metricConfig.Aggregations[label2]
-
-		if ok && strings.EqualFold(aggregation.Type, "MaxCells") {
-			MaxCells(&dscData.Datasets[i], aggregation.Params["x"])
+		if ok && strings.EqualFold(aggregationDim2.Type, "MaxCells") {
+			MaxCells(&dscData.Datasets[i], aggregationDim2.Params["x"])
+		}
+		if ok && strings.EqualFold(aggregationDim2.Type, "EliminateDimension") {
+			EliminateDimensionTwo(&dscData.Datasets[i])
 		}
 
 		newDatasets = append(newDatasets, *dataset)

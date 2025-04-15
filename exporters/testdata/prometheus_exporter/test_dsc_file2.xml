@@ -1,5 +1,5 @@
 <dscdata>
-<array name="pcap_stats" dimensions="2" start_time="1741170540" stop_time="1741170600">
+<array name="pcap_stats" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Prometheus exporter counter, dataset is in both dsc files-->
   <dimension number="1" type="ifname"/>
   <dimension number="2" type="pcap_stat"/>
   <data>
@@ -9,7 +9,7 @@
     </ifname>
   </data>
 </array>
-<array name="priming_queries" dimensions="2" start_time="1741170540" stop_time="1741170600">
+<array name="priming_queries" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!--Test adding metric in later dsc files-->
   <dimension number="1" type="Transport"/>
   <dimension number="2" type="EDNSBufSiz"/>
   <data>
