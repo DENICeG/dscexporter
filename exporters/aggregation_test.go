@@ -25,6 +25,26 @@ func TestMaxCells(t *testing.T) {
 	}
 }
 
+func DSCDataEquals(expected *dscparser.DSCData, actual *dscparser.DSCData) bool {
+	// Sort cells after label
+	cmpCell := func(a, b dscparser.Cell) int {
+		return cmp.Compare(a.Value, b.Value)
+	}
+
+	dscDatas := []*dscparser.DSCData{expected, actual}
+	for _, dscData := range dscDatas {
+		for j := range dscData.Datasets {
+			dataset := &dscData.Datasets[j]
+			for k := range dataset.Data.Rows {
+				row := &dataset.Data.Rows[k]
+				slices.SortFunc(row.Cells, cmpCell)
+			}
+		}
+	}
+
+	return reflect.DeepEqual(expected, actual)
+}
+
 func TestEliminateDimensionOne(t *testing.T) {
 	testDataset := dscparser.ParseDataset("./testdata/aggregation/EliminateDimension/Dimension1/test_dataset.xml")
 
@@ -66,7 +86,7 @@ func TestFilterForPrometheus(t *testing.T) {
 
 	expectedDSCData := dscparser.ReadFile("./testdata/aggregation/FilterForPrometheus/expected_dsc_file.xml", "loc", "ns")
 
-	if !reflect.DeepEqual(testDSCData, expectedDSCData) {
+	if !DSCDataEquals(testDSCData, expectedDSCData) {
 		t.Logf("Test Data: \n%+v\n\n", testDSCData)
 		t.Logf("Expected Output: \n%+v\n\n", expectedDSCData)
 		t.Errorf("FilterForPrometheus(testDSCData) doesnt deeply match expectedDSCData")
