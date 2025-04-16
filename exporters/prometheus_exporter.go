@@ -80,14 +80,13 @@ func (pe *PrometheusExporter) createMissingMetrics(dscData *dscparser.DSCData) {
 				continue
 			}
 
-			if metricConfig.IsBucket(dimensionInfo.Type) {
-				aggregation := metricConfig.Aggregations[label]
+			if isBucket, params := metricConfig.IsBucket(dimensionInfo.Type); isBucket {
 				if len(buckets) > 0 {
 					panic(fmt.Sprintf("Found more than one bucket for single metric %v", dataset.Name))
 				}
-				start := float64(aggregation.Params["start"])
-				width := float64(aggregation.Params["width"])
-				count := aggregation.Params["count"]
+				start := float64(params.Start)
+				width := float64(params.Width)
+				count := params.Count
 				buckets = prometheus.LinearBuckets(start, width, count)
 				// Todo: Validate config: All paramters exist and only one bucket per metric
 			} else {
@@ -127,10 +126,10 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 			//First label is always nameserver
 			var labelValues []string = []string{nameServer}
 
-			if label1 != "All" && !metricConfig.IsBucket(label1) {
+			if isBucket, _ := metricConfig.IsBucket(label1); label1 != "All" && !isBucket {
 				labelValues = append(labelValues, row.Value)
 			}
-			if label2 != "All" && !metricConfig.IsBucket(label2) {
+			if isBucket, _ := metricConfig.IsBucket(label2); label2 != "All" && !isBucket {
 				labelValues = append(labelValues, cell.Value)
 			}
 
@@ -138,12 +137,12 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 			case *prometheus.HistogramVec:
 
 				bucket := 0.0
-				if metricConfig.IsBucket(label1) {
+				if isBucket, _ := metricConfig.IsBucket(label1); isBucket {
 					rowValue, err := strconv.Atoi(row.Value)
 					checkError(err)
 					bucket = float64(rowValue)
 				}
-				if metricConfig.IsBucket(label2) {
+				if isBucket, _ := metricConfig.IsBucket(label2); isBucket {
 					cellValue, err := strconv.Atoi(cell.Value)
 					checkError(err)
 					bucket = float64(cellValue)

@@ -11,7 +11,24 @@ import (
 func TestIsBucket(t *testing.T) {
 	config := ParseConfig("./testdata/config.yaml")
 	metricConfig := config.Prometheus.Metrics["priming_responses"]
-	assert.True(t, metricConfig.IsBucket("ReplyLen"))
+	isBucket, params := metricConfig.IsBucket("ReplyLen")
+	assert.True(t, isBucket)
+	assert.Equal(t, params, BucketParams{Start: 0, Width: 50, Count: 22})
+}
+
+func TestIsEliminateDimension(t *testing.T) {
+	config := ParseConfig("./testdata/config.yaml")
+	metricConfig := config.Prometheus.Metrics["pcap_stats"]
+	isEliminateDimension := metricConfig.IsEliminateDimension("ifname")
+	assert.True(t, isEliminateDimension)
+}
+
+func TestIsMaxCells(t *testing.T) {
+	config := ParseConfig("./testdata/config.yaml")
+	metricConfig := config.Prometheus.Metrics["second_ld_vs_rcode"]
+	isMaxCells, params := metricConfig.IsMaxCells("SecondLD")
+	assert.True(t, isMaxCells)
+	assert.Equal(t, params, MaxCellsParams{X: 5})
 }
 
 func TestConfig(t *testing.T) {
@@ -26,7 +43,11 @@ func TestConfig(t *testing.T) {
 			Port: 2113,
 			Metrics: map[string]MetricConfig{
 				"pcap_stats": MetricConfig{
-					Aggregations: nil,
+					Aggregations: map[string]Aggregation{
+						"ifname": Aggregation{
+							Type: "EliminateDimension",
+						},
+					},
 				},
 				"second_ld_vs_rcode": MetricConfig{
 					Aggregations: map[string]Aggregation{
@@ -49,6 +70,9 @@ func TestConfig(t *testing.T) {
 							},
 						},
 					},
+				},
+				"qr_aa_bits": MetricConfig{
+					Aggregations: nil,
 				},
 			},
 		},

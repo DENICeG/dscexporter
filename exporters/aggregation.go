@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"encoding/xml"
 	"slices"
-	"strings"
 
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
@@ -103,20 +102,16 @@ func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 		}
 
 		label1 := dataset.DimensionInfo[0].Type
-		aggregationDim1, ok := metricConfig.Aggregations[label1]
-
-		if ok && strings.EqualFold(aggregationDim1.Type, "EliminateDimension") {
+		if metricConfig.IsEliminateDimension(label1) {
 			EliminateDimensionOne(&dscData.Datasets[i])
 		}
 
 		label2 := dataset.DimensionInfo[1].Type
-		aggregationDim2, ok := metricConfig.Aggregations[label2]
-
-		if ok && strings.EqualFold(aggregationDim2.Type, "MaxCells") {
-			MaxCells(&dscData.Datasets[i], aggregationDim2.Params["x"])
-		}
-		if ok && strings.EqualFold(aggregationDim2.Type, "EliminateDimension") {
+		if metricConfig.IsEliminateDimension(label2) {
 			EliminateDimensionTwo(&dscData.Datasets[i])
+		}
+		if isBucket, params := metricConfig.IsMaxCells(label2); isBucket {
+			MaxCells(&dscData.Datasets[i], params.X)
 		}
 
 		newDatasets = append(newDatasets, *dataset)

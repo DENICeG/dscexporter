@@ -35,12 +35,43 @@ type MetricConfig struct {
 	Aggregations map[string]Aggregation `yaml:"aggregations"`
 }
 
-func (mC *MetricConfig) IsBucket(label string) bool {
+type BucketParams struct {
+	Start int
+	Width int
+	Count int
+}
+
+func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
+	aggregation, ok := mC.Aggregations[label]
+	if !ok {
+		return false, BucketParams{}
+	}
+	return strings.EqualFold(aggregation.Type, "Bucket"),
+		BucketParams{
+			Start: aggregation.Params["start"],
+			Width: aggregation.Params["width"],
+			Count: aggregation.Params["count"],
+		}
+}
+
+func (mC *MetricConfig) IsEliminateDimension(label string) bool {
 	aggregation, ok := mC.Aggregations[label]
 	if !ok {
 		return false
 	}
-	return strings.EqualFold(aggregation.Type, "Bucket")
+	return strings.EqualFold(aggregation.Type, "EliminateDimension")
+}
+
+type MaxCellsParams struct {
+	X int
+}
+
+func (mC *MetricConfig) IsMaxCells(label string) (bool, MaxCellsParams) {
+	aggregation, ok := mC.Aggregations[label]
+	if !ok {
+		return false, MaxCellsParams{}
+	}
+	return strings.EqualFold(aggregation.Type, "MaxCells"), MaxCellsParams{aggregation.Params["x"]}
 }
 
 type Aggregation struct {

@@ -1,7 +1,10 @@
 prometheus:
   port: 2113
   metrics: 
-    pcap_stats: {}
+    pcap_stats: 
+      aggregations: 
+        ifname:
+          type: EliminateDimension
     second_ld_vs_rcode:
       aggregations: 
         SecondLD:
@@ -16,6 +19,7 @@ prometheus:
             start: 0
             width: 50
             count: 22
+    qr_aa_bits: {}
 
 interval: 20s
 remove: true
