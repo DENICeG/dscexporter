@@ -23,7 +23,16 @@ prometheus:
             start: 0
             width: 50
             count: 5
-    priming_queries: {}
+    priming_queries: 
+     aggregations: 
+        EDNSBufSiz:
+          type: Bucket
+          params: 
+            start: -1
+            width: 512
+            count: 6
+            none_counter: true
+            use_midpoint: true
     third_ld_vs_rcode:
       aggregations: 
         ThirdLD:

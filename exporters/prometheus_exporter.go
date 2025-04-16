@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
@@ -33,7 +34,7 @@ func NewPrometheusExporter(config config.Config) *PrometheusExporter {
 	return &PrometheusExporter{Metrics: make(map[string]interface{}), Registry: registry, Config: config, FilesCounter: filesCounter}
 }
 
-func (pe *PrometheusExporter) addHistogram(metricName string, metricHelp string, buckets []float64, labels []string, datasetName string) {
+func (pe *PrometheusExporter) addHistogram(metricName string, metricHelp string, buckets []float64, labels []string, key string) {
 	metric := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    metricName,
@@ -43,10 +44,10 @@ func (pe *PrometheusExporter) addHistogram(metricName string, metricHelp string,
 		labels,
 	)
 	pe.Registry.MustRegister(metric)
-	pe.Metrics[datasetName] = metric
+	pe.Metrics[key] = metric
 }
 
-func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, labels []string, datasetName string) {
+func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, labels []string, key string) {
 	metric := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: metricName,
@@ -55,7 +56,7 @@ func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, l
 		labels,
 	)
 	pe.Registry.MustRegister(metric)
-	pe.Metrics[datasetName] = metric
+	pe.Metrics[key] = metric
 }
 
 func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, metricConfig config.MetricConfig) {
@@ -77,9 +78,18 @@ func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, met
 		labels = append(labels, label1)
 	}
 
-	metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
-	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
+	metricName := fmt.Sprintf("dsc_exporter_%v_%v", dataset.Name, label2)
+	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v", dataset.Name, label2)
+	if params.UseMidpoint {
+		metricHelp += " - DO NOT use the _sum value! This metric is based of a ranges in the dsc files, so the _sum value cant be calculated correctly"
+	}
 	pe.addHistogram(metricName, metricHelp, buckets, labels, dataset.Name)
+
+	if params.NoneCounter {
+		metricName := fmt.Sprintf("dsc_exporter_%v_%v_None", dataset.Name, label2)
+		metricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v for value None", dataset.Name, label2)
+		pe.addCounter(metricName, metricHelp, labels, fmt.Sprintf("%v_%v", dataset.Name, "None"))
+	}
 }
 
 func (pe *PrometheusExporter) createMissingCounter(dataset dscparser.Dataset) {
@@ -124,6 +134,36 @@ func checkError(err error) {
 	}
 }
 
+func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricConfig config.MetricConfig, metric *prometheus.HistogramVec, label2 string, labelValues []string, value string, count int) {
+
+	_, bucketParams := metricConfig.IsBucket(label2)
+	if value == "None" && bucketParams.NoneCounter {
+		// Increment counter for none values
+		noneCounter := pe.Metrics[fmt.Sprintf("%v_%v", dataset.Name, "None")].(*prometheus.CounterVec)
+		noneCounter.WithLabelValues(labelValues...).Add(float64(count))
+		return
+	}
+	bucket := float64(0)
+	if _, params := metricConfig.IsBucket(label2); strings.Contains(value, "-") && params.UseMidpoint {
+		// For existing dsc ranges like 1024-1535 in EDNSBufSiz use midpoint
+		substrings := strings.Split(value, "-")
+		start, err1 := strconv.Atoi(substrings[0])
+		end, err2 := strconv.Atoi(substrings[1])
+		if err1 != nil || err2 != nil {
+			panic(fmt.Sprintf("Value %v of dataset %v cant be splited and parsed for bucket", value, dataset.Name))
+		}
+		bucket = (float64(end) + float64(start)) / 2
+	} else {
+		cellValue, err := strconv.Atoi(value)
+		checkError(err)
+		bucket = float64(cellValue)
+	}
+
+	for i := 0; i < count; i++ {
+		metric.WithLabelValues(labelValues...).Observe(bucket)
+	}
+}
+
 func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServer string) {
 	metric := pe.Metrics[dataset.Name]
 	metricConfig := pe.Config.Prometheus.Metrics[dataset.Name]
@@ -146,16 +186,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 
 			switch metricCasted := metric.(type) {
 			case *prometheus.HistogramVec:
-
-				bucket := 0.0
-				cellValue, err := strconv.Atoi(cell.Value)
-				checkError(err)
-				bucket = float64(cellValue)
-
-				for i := 0; i < cell.Count; i++ {
-					metricCasted.WithLabelValues(labelValues...).Observe(bucket)
-				}
-
+				pe.updateBucket(dataset, metricConfig, metricCasted, label2, labelValues, cell.Value, cell.Count)
 			case *prometheus.CounterVec:
 				metricCasted.WithLabelValues(labelValues...).Add(float64(cell.Count))
 			default:

@@ -14,14 +14,11 @@
   <dimension number="2" type="EDNSBufSiz"/>
   <data>
     <Transport val="udp">
-      <EDNSBufSiz val="1024-1535" count="3"/>
-      <EDNSBufSiz val="4096-4607" count="1"/>
       <EDNSBufSiz val="None" count="4"/>
       <EDNSBufSiz val="512-1023" count="5"/>
-      <EDNSBufSiz val="3584-4095" count="3"/>
+      <EDNSBufSiz val="1024-1535" count="3"/>
       <EDNSBufSiz val="1536-2047" count="2"/>
-      <EDNSBufSiz val="2048-2559" count="3"/>
-      <EDNSBufSiz val="8192-8703" count="1"/>
+      <EDNSBufSiz val="4096-4607" count="1"/>
     </Transport>
     <Transport val="tcp">
       <EDNSBufSiz val="None" count="1"/>

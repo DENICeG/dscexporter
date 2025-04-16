@@ -35,10 +35,40 @@ type MetricConfig struct {
 	Aggregations map[string]Aggregation `yaml:"aggregations"`
 }
 
+func toInt(i interface{}) int {
+	switch v := i.(type) {
+	case uint64:
+		return int(v)
+	case int64:
+		return int(v)
+	case int:
+		return v
+	case nil:
+		return 0
+	default:
+		panic(fmt.Sprintf("Cant convert %v of type %T to int", v, v))
+	}
+	return 0
+}
+
+func toBool(i interface{}) bool {
+	switch v := i.(type) {
+	case bool:
+		return v
+	case nil:
+		return false
+	default:
+		panic(fmt.Sprintf("Cant convert %v of type %T to bool", v, v))
+	}
+	return false
+}
+
 type BucketParams struct {
-	Start int
-	Width int
-	Count int
+	Start       int
+	Width       int
+	Count       int
+	NoneCounter bool
+	UseMidpoint bool
 }
 
 func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
@@ -48,9 +78,11 @@ func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
 	}
 	return strings.EqualFold(aggregation.Type, "Bucket"),
 		BucketParams{
-			Start: aggregation.Params["start"],
-			Width: aggregation.Params["width"],
-			Count: aggregation.Params["count"],
+			Start:       toInt(aggregation.Params["start"]),
+			Width:       toInt(aggregation.Params["width"]),
+			Count:       toInt(aggregation.Params["count"]),
+			NoneCounter: toBool(aggregation.Params["none_counter"]),
+			UseMidpoint: toBool(aggregation.Params["use_midpoint"]),
 		}
 }
 
@@ -71,12 +103,12 @@ func (mC *MetricConfig) IsMaxCells(label string) (bool, MaxCellsParams) {
 	if !ok {
 		return false, MaxCellsParams{}
 	}
-	return strings.EqualFold(aggregation.Type, "MaxCells"), MaxCellsParams{aggregation.Params["x"]}
+	return strings.EqualFold(aggregation.Type, "MaxCells"), MaxCellsParams{toInt(aggregation.Params["x"])}
 }
 
 type Aggregation struct {
-	Type   string         `yaml:"type"`
-	Params map[string]int `yaml:"params"`
+	Type   string                 `yaml:"type"`
+	Params map[string]interface{} `yaml:"params"`
 }
 
 func checkError(err error) {

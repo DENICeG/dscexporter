@@ -13,7 +13,7 @@ func TestIsBucket(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["priming_responses"]
 	isBucket, params := metricConfig.IsBucket("ReplyLen")
 	assert.True(t, isBucket)
-	assert.Equal(t, params, BucketParams{Start: 0, Width: 50, Count: 22})
+	assert.Equal(t, params, BucketParams{Start: -1, Width: 50, Count: 0, NoneCounter: true, UseMidpoint: true})
 }
 
 func TestIsEliminateDimension(t *testing.T) {
@@ -53,8 +53,8 @@ func TestConfig(t *testing.T) {
 					Aggregations: map[string]Aggregation{
 						"SecondLD": Aggregation{
 							Type: "MaxCells",
-							Params: map[string]int{
-								"x": 5,
+							Params: map[string]interface{}{
+								"x": uint64(5),
 							},
 						},
 					},
@@ -63,10 +63,11 @@ func TestConfig(t *testing.T) {
 					Aggregations: map[string]Aggregation{
 						"ReplyLen": Aggregation{
 							Type: "Bucket",
-							Params: map[string]int{
-								"start": 0,
-								"width": 50,
-								"count": 22,
+							Params: map[string]interface{}{
+								"start":        int64(-1),
+								"width":        uint64(50),
+								"none_counter": true,
+								"use_midpoint": true,
 							},
 						},
 					},
