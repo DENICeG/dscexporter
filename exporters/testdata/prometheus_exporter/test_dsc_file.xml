@@ -47,21 +47,25 @@
   <dimension number="2" type="ReplyLen"/>
   <data>
     <All val="ALL">
-      <ReplyLen val="620" count="501"/>
-      <ReplyLen val="624" count="471"/>
-      <ReplyLen val="622" count="465"/>
-      <ReplyLen val="621" count="457"/>
-      <ReplyLen val="132" count="455"/>
-      <ReplyLen val="619" count="448"/>
-      <ReplyLen val="623" count="425"/>
-      <ReplyLen val="625" count="413"/>
-      <ReplyLen val="626" count="400"/>
-      <ReplyLen val="629" count="399"/>
-      <ReplyLen val="627" count="385"/>
-      <ReplyLen val="618" count="350"/>
-      <ReplyLen val="706" count="336"/>
-      <ReplyLen val="628" count="315"/>
+      <ReplyLen val="0" count="10"/>
+      <ReplyLen val="100" count="10"/>
+      <ReplyLen val="149" count="10"/>
+      <ReplyLen val="150" count="10"/>
+      <ReplyLen val="251" count="10"/>
     </All>
+  </data>
+</array>
+<array name="weird_dataset" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Buckets - check that first dim, cant be bucket-->
+  <dimension number="1" type="ReplyLen"/>
+  <dimension number="2" type="All"/>
+  <data>
+      <ReplyLen val="0">
+        <All val="ALL" count="10"/>
+      </ReplyLen>
+      <ReplyLen val="100">
+        <All val="ALL" count="10"/>
+      </ReplyLen>
+      <ReplyLen val="149"/>
   </data>
 </array>
 <array name="third_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test EliminateDimensionTwo-->

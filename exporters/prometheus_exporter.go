@@ -58,6 +58,43 @@ func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, l
 	pe.Metrics[datasetName] = metric
 }
 
+func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, metricConfig config.MetricConfig) {
+
+	//First label is always nameserver
+	var labels []string = []string{"ns"}
+	var buckets []float64
+
+	label1 := dataset.DimensionInfo[0].Type
+	label2 := dataset.DimensionInfo[1].Type
+
+	_, params := metricConfig.IsBucket(label2)
+	start := float64(params.Start)
+	width := float64(params.Width)
+	count := params.Count
+	buckets = prometheus.LinearBuckets(start, width, count)
+
+	if label1 != "All" {
+		labels = append(labels, label1)
+	}
+
+	metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
+	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
+	pe.addHistogram(metricName, metricHelp, buckets, labels, dataset.Name)
+}
+
+func (pe *PrometheusExporter) createMissingCounter(dataset dscparser.Dataset) {
+	var labels []string = []string{"ns"}
+	for _, dimensionInfo := range dataset.DimensionInfo {
+		label := dimensionInfo.Type
+		if label != "All" {
+			labels = append(labels, label)
+		}
+	}
+	metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
+	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
+	pe.addCounter(metricName, metricHelp, labels, dataset.Name)
+}
+
 func (pe *PrometheusExporter) createMissingMetrics(dscData *dscparser.DSCData) {
 
 	for _, dataset := range dscData.Datasets {
@@ -69,38 +106,12 @@ func (pe *PrometheusExporter) createMissingMetrics(dscData *dscparser.DSCData) {
 			continue
 		}
 
-		//First label is always nameserver
-		var labels []string = []string{"ns"}
-		var buckets []float64
-
-		for _, dimensionInfo := range dataset.DimensionInfo {
-
-			label := dimensionInfo.Type
-			if label == "All" {
-				continue
-			}
-
-			if isBucket, params := metricConfig.IsBucket(dimensionInfo.Type); isBucket {
-				if len(buckets) > 0 {
-					panic(fmt.Sprintf("Found more than one bucket for single metric %v", dataset.Name))
-				}
-				start := float64(params.Start)
-				width := float64(params.Width)
-				count := params.Count
-				buckets = prometheus.LinearBuckets(start, width, count)
-				// Todo: Validate config: All paramters exist and only one bucket per metric
-			} else {
-				labels = append(labels, dimensionInfo.Type)
-			}
-		}
-
-		metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
-		metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
-
-		if len(buckets) > 0 {
-			pe.addHistogram(metricName, metricHelp, buckets, labels, dataset.Name)
+		// Only second dimension can be a bucket
+		isBucket, _ := metricConfig.IsBucket(dataset.DimensionInfo[1].Type)
+		if isBucket {
+			pe.createMissingBucket(dataset, metricConfig)
 		} else {
-			pe.addCounter(metricName, metricHelp, labels, dataset.Name)
+			pe.createMissingCounter(dataset)
 		}
 
 	}
@@ -126,7 +137,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 			//First label is always nameserver
 			var labelValues []string = []string{nameServer}
 
-			if isBucket, _ := metricConfig.IsBucket(label1); label1 != "All" && !isBucket {
+			if label1 != "All" {
 				labelValues = append(labelValues, row.Value)
 			}
 			if isBucket, _ := metricConfig.IsBucket(label2); label2 != "All" && !isBucket {
@@ -137,16 +148,9 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 			case *prometheus.HistogramVec:
 
 				bucket := 0.0
-				if isBucket, _ := metricConfig.IsBucket(label1); isBucket {
-					rowValue, err := strconv.Atoi(row.Value)
-					checkError(err)
-					bucket = float64(rowValue)
-				}
-				if isBucket, _ := metricConfig.IsBucket(label2); isBucket {
-					cellValue, err := strconv.Atoi(cell.Value)
-					checkError(err)
-					bucket = float64(cellValue)
-				}
+				cellValue, err := strconv.Atoi(cell.Value)
+				checkError(err)
+				bucket = float64(cellValue)
 
 				for i := 0; i < cell.Count; i++ {
 					metricCasted.WithLabelValues(labelValues...).Observe(bucket)

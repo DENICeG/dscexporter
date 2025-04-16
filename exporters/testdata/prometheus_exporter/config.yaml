@@ -14,7 +14,15 @@ prometheus:
           params: 
             start: 0
             width: 50
-            count: 22
+            count: 5
+    weird_dataset: 
+      aggregations: 
+        ReplyLen: # Fist dimension cant be bucket
+          type: Bucket
+          params: 
+            start: 0
+            width: 50
+            count: 5
     priming_queries: {}
     third_ld_vs_rcode:
       aggregations: 
