@@ -1,0 +1,19 @@
+<array name="a" dimensions="2" start_time="1741170540" stop_time="1741170600">
+    <dimension number="1" type="D1"/>
+    <dimension number="2" type="D2"/>
+    <data>
+      <D1 val="c">
+          <D2 val="1" count="8"/>
+          <D2 val="a" count="8"/>
+      </D1>
+      <D1 val="a">
+          <D2 val="a" count="8"/>
+          <D2 val="1" count="8"/>
+      </D1>
+      <D1 val="b">
+          <D2 val="a" count="2"/>
+          <D2 val="c" count="3"/>
+          <D2 val="1" count="1"/>
+      </D1>
+    </data>
+</array>
