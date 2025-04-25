@@ -20,3 +20,12 @@ prometheus:
       aggregations: 
         Rcode:
           type: EliminateDimension
+        qtype: 
+    qtype:
+      aggregations: 
+        Qtype:
+          type: Filter
+          params:
+            "1": {}
+            "2": {}
+            "28": {}

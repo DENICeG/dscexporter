@@ -199,7 +199,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 }
 
 func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
-	FilterForPrometheus(dscData, pe.Config)
+	AggregateForPrometheus(dscData, pe.Config)
 	pe.createMissingMetrics(dscData)
 	for _, dataset := range dscData.Datasets {
 		if _, ok := pe.Metrics[dataset.Name]; !ok {

@@ -91,7 +91,70 @@ func EliminateDimensionTwo(dataset *dscparser.Dataset) {
 	}
 }
 
-func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
+func createAllowedValuesSet(allowedValues []string) map[string]bool {
+	set := map[string]bool{}
+	for _, allowedValue := range allowedValues {
+		set[allowedValue] = true
+	}
+	return set
+}
+
+func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
+	allowedValuesSet := createAllowedValuesSet(allowedValues)
+	rows := []dscparser.Row{}
+	other := map[string]int{}
+	for _, row := range dataset.Data.Rows {
+		if allowedValuesSet[row.Value] {
+			rows = append(rows, row)
+		} else {
+			for _, cell := range row.Cells {
+				other[cell.Value] += cell.Count
+			}
+		}
+	}
+
+	otherCells := []dscparser.Cell{}
+	for value, count := range other {
+		otherCells = append(otherCells, dscparser.Cell{
+			XMLName: xml.Name{Local: dataset.DimensionInfo[1].Type},
+			Value:   value,
+			Count:   count,
+		})
+	}
+	rows = append(rows,
+		dscparser.Row{
+			XMLName: xml.Name{Local: dataset.DimensionInfo[0].Type},
+			Value:   "other",
+			Cells:   otherCells,
+		})
+	dataset.Data.Rows = rows
+}
+
+func FilterDimensionTwo(dataset *dscparser.Dataset, allowedValues []string) {
+	allowedValuesSet := createAllowedValuesSet(allowedValues)
+	for i := range dataset.Data.Rows {
+		row := &dataset.Data.Rows[i]
+		cells := []dscparser.Cell{}
+		other := 0
+		for _, cell := range row.Cells {
+			if allowedValuesSet[cell.Value] {
+				cells = append(cells, cell)
+			} else {
+				other += cell.Count
+			}
+		}
+		if other > 0 {
+			cells = append(cells, dscparser.Cell{
+				XMLName: xml.Name{Local: dataset.DimensionInfo[1].Type},
+				Value:   "other",
+				Count:   other,
+			})
+		}
+		row.Cells = cells
+	}
+}
+
+func AggregateForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 
 	var newDatasets []dscparser.Dataset
 	for i := range dscData.Datasets {
@@ -105,6 +168,9 @@ func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 		if metricConfig.IsEliminateDimension(label1) {
 			EliminateDimensionOne(&dscData.Datasets[i])
 		}
+		if isFilter, allowedValues := metricConfig.IsFilter(label1); isFilter {
+			FilterDimensionOne(dataset, allowedValues)
+		}
 
 		label2 := dataset.DimensionInfo[1].Type
 		if metricConfig.IsEliminateDimension(label2) {
@@ -112,6 +178,9 @@ func FilterForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 		}
 		if isBucket, params := metricConfig.IsMaxCells(label2); isBucket {
 			MaxCells(&dscData.Datasets[i], params.X)
+		}
+		if isFilter, allowedValues := metricConfig.IsFilter(label2); isFilter {
+			FilterDimensionTwo(dataset, allowedValues)
 		}
 
 		newDatasets = append(newDatasets, *dataset)

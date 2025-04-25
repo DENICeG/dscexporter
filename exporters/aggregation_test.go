@@ -77,18 +77,64 @@ func TestEliminateDimensionTwo(t *testing.T) {
 	}
 }
 
-func TestFilterForPrometheus(t *testing.T) {
+func TestFilterDimensionOne(t *testing.T) {
+	testDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/test_dataset.xml")
 
-	config := config.ParseConfig("./testdata/aggregation/FilterForPrometheus/config.yaml")
+	allowedQtypes := []string{
+		"1",   // A
+		"2",   // NS
+		"5",   // CNAME
+		"6",   // SOA
+		"12",  // PTR
+		"15",  // MX
+		"16",  // TXT
+		"28",  // AAAA
+		"33",  // SRV
+		"38",  // A6
+		"43",  // DS
+		"48",  //DNSKEY
+		"65",  // HTTPS
+		"255", // ANY
+		"257", // CAA
+	}
+	FilterDimensionOne(testDataset, allowedQtypes)
 
-	testDSCData := dscparser.ReadFile("./testdata/aggregation/FilterForPrometheus/test_dsc_file.xml", "loc", "ns")
-	FilterForPrometheus(testDSCData, config)
+	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/expected_dataset_dim1.xml")
 
-	expectedDSCData := dscparser.ReadFile("./testdata/aggregation/FilterForPrometheus/expected_dsc_file.xml", "loc", "ns")
+	if !testDataset.Equals(*expectedDataset) {
+		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
+		t.Logf("Expected Output: \n%+v\n\n", expectedDataset)
+		t.Errorf("FilterDimensionOne(test_dataset) doesnt deeply match expected_dataset")
+	}
+}
+
+func TestFilterDimensionTwo(t *testing.T) {
+	testDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/test_dataset.xml")
+
+	allowedTlds := []string{"de", "localhost"}
+	FilterDimensionTwo(testDataset, allowedTlds)
+
+	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/expected_dataset_dim2.xml")
+
+	if !testDataset.Equals(*expectedDataset) {
+		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
+		t.Logf("Expected Output: \n%+v\n\n", expectedDataset)
+		t.Errorf("FilterDimensionTwo(test_dataset) doesnt deeply match expected_dataset")
+	}
+}
+
+func TestAggregateForPrometheus(t *testing.T) {
+
+	config := config.ParseConfig("./testdata/aggregation/AggregateForPrometheus/config.yaml")
+
+	testDSCData := dscparser.ReadFile("./testdata/aggregation/AggregateForPrometheus/test_dsc_file.xml", "loc", "ns")
+	AggregateForPrometheus(testDSCData, config)
+
+	expectedDSCData := dscparser.ReadFile("./testdata/aggregation/AggregateForPrometheus/expected_dsc_file.xml", "loc", "ns")
 
 	if !DSCDataEquals(testDSCData, expectedDSCData) {
 		t.Logf("Test Data: \n%+v\n\n", testDSCData)
 		t.Logf("Expected Output: \n%+v\n\n", expectedDSCData)
-		t.Errorf("FilterForPrometheus(testDSCData) doesnt deeply match expectedDSCData")
+		t.Errorf("AggregateForPrometheus(testDSCData) doesnt deeply match expectedDSCData")
 	}
 }

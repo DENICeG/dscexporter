@@ -81,4 +81,16 @@
 	  	</Rcode>
 	</data>
 </array>
+<array name="qtype" dimensions="2" start_time="1741249080" stop_time="1741249140">
+  <dimension number="1" type="All"/>
+  <dimension number="2" type="Qtype"/>
+  <data>
+    <All val="ALL">
+      <Qtype val="1" count="146"/>
+      <Qtype val="2" count="142"/>
+      <Qtype val="28" count="144"/>
+      <Qtype val="5" count="193"/>
+    </All>
+  </data>
+</array>
 </dscdata>

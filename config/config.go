@@ -48,7 +48,6 @@ func toInt(i interface{}) int {
 	default:
 		panic(fmt.Sprintf("Cant convert %v of type %T to int", v, v))
 	}
-	return 0
 }
 
 func toBool(i interface{}) bool {
@@ -60,7 +59,6 @@ func toBool(i interface{}) bool {
 	default:
 		panic(fmt.Sprintf("Cant convert %v of type %T to bool", v, v))
 	}
-	return false
 }
 
 type BucketParams struct {
@@ -73,10 +71,10 @@ type BucketParams struct {
 
 func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
 	aggregation, ok := mC.Aggregations[label]
-	if !ok {
+	if !ok || !strings.EqualFold(aggregation.Type, "Bucket") {
 		return false, BucketParams{}
 	}
-	return strings.EqualFold(aggregation.Type, "Bucket"),
+	return true,
 		BucketParams{
 			Start:       toInt(aggregation.Params["start"]),
 			Width:       toInt(aggregation.Params["width"]),
@@ -88,10 +86,10 @@ func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
 
 func (mC *MetricConfig) IsEliminateDimension(label string) bool {
 	aggregation, ok := mC.Aggregations[label]
-	if !ok {
+	if !ok || !strings.EqualFold(aggregation.Type, "EliminateDimension") {
 		return false
 	}
-	return strings.EqualFold(aggregation.Type, "EliminateDimension")
+	return true
 }
 
 type MaxCellsParams struct {
@@ -100,10 +98,22 @@ type MaxCellsParams struct {
 
 func (mC *MetricConfig) IsMaxCells(label string) (bool, MaxCellsParams) {
 	aggregation, ok := mC.Aggregations[label]
-	if !ok {
+	if !ok || !strings.EqualFold(aggregation.Type, "MaxCells") {
 		return false, MaxCellsParams{}
 	}
-	return strings.EqualFold(aggregation.Type, "MaxCells"), MaxCellsParams{toInt(aggregation.Params["x"])}
+	return true, MaxCellsParams{toInt(aggregation.Params["x"])}
+}
+
+func (mC *MetricConfig) IsFilter(label string) (bool, []string) {
+	aggregation, ok := mC.Aggregations[label]
+	if !ok || !strings.EqualFold(aggregation.Type, "Filter") {
+		return false, []string{}
+	}
+	allowedValues := []string{}
+	for key := range aggregation.Params {
+		allowedValues = append(allowedValues, key)
+	}
+	return true, allowedValues
 }
 
 type Aggregation struct {

@@ -31,6 +31,22 @@ func TestIsMaxCells(t *testing.T) {
 	assert.Equal(t, params, MaxCellsParams{X: 5})
 }
 
+func TestIsFilter(t *testing.T) {
+	config := ParseConfig("./testdata/config.yaml")
+	metricConfig := config.Prometheus.Metrics["qtype"]
+	isFilter, allowedValues := metricConfig.IsFilter("Qtype")
+	assert.True(t, isFilter)
+	assert.Equal(t, allowedValues, []string{"A", "AAAA", "NS"})
+}
+
+func TestIsFilterButItsNot(t *testing.T) {
+	config := ParseConfig("./testdata/config.yaml")
+	metricConfig := config.Prometheus.Metrics["second_ld_vs_rcode"]
+	isFilter, allowedValues := metricConfig.IsFilter("SecondLD")
+	assert.False(t, isFilter)
+	assert.Equal(t, allowedValues, []string{})
+}
+
 func TestConfig(t *testing.T) {
 
 	config := ParseConfig("./testdata/config.yaml")
@@ -74,6 +90,18 @@ func TestConfig(t *testing.T) {
 				},
 				"qr_aa_bits": MetricConfig{
 					Aggregations: nil,
+				},
+				"qtype": MetricConfig{
+					Aggregations: map[string]Aggregation{
+						"Qtype": Aggregation{
+							Type: "Filter",
+							Params: map[string]interface{}{
+								"A":    map[string]interface{}{},
+								"AAAA": map[string]interface{}{},
+								"NS":   map[string]interface{}{},
+							},
+						},
+					},
 				},
 			},
 		},

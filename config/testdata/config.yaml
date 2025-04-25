@@ -5,6 +5,14 @@ prometheus:
       aggregations: 
         ifname:
           type: EliminateDimension
+    qtype: 
+      aggregations: 
+        Qtype:
+          type: Filter
+          params:
+            "A": {}
+            "AAAA": {}
+            "NS": {}
     second_ld_vs_rcode:
       aggregations: 
         SecondLD:

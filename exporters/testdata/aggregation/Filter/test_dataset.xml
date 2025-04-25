@@ -1,0 +1,27 @@
+<array name="qtype_vs_tld" dimensions="2" start_time="1741249500" stop_time="1741249560">
+	<dimension number="1" type="Qtype" />
+	<dimension number="2" type="TLD" />
+	<data>
+		<Qtype val="0">
+		</Qtype>
+		<Qtype val="1">
+			<TLD val="de" count="140" />
+			<TLD val="localhost" count="48" />
+			<TLD val="org" count="55" />
+			<TLD val="com" count="53" />
+			<TLD val="net" count="51" />
+			<TLD val="microsoft" count="25" />
+		</Qtype>
+		<Qtype val="12">
+			<TLD val="de" count="55" />
+			<TLD val="arpa" count="22" />
+		</Qtype>
+		<Qtype val="13"> 
+			<TLD val="de" count="55" />
+			<TLD val="arpa" count="22" />
+		</Qtype>
+		<Qtype val="14">
+			<TLD val="de" count="55" />
+		</Qtype>
+	</data>
+</array>
