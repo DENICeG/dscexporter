@@ -1,12 +1,6 @@
 prometheus:
   metrics: 
     pcap_stats: {}
-    second_ld_vs_rcode:
-      aggregations: 
-        SecondLD:
-          type: MaxCells
-          params: 
-            x: 5
     priming_responses: 
       aggregations: 
         ReplyLen:
@@ -33,7 +27,3 @@ prometheus:
             count: 6
             none_counter: true
             use_midpoint: true
-    third_ld_vs_rcode:
-      aggregations: 
-        ThirdLD:
-          type: EliminateDimension

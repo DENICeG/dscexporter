@@ -9,7 +9,7 @@
     </ifname>
   </data>
 </array>
-<array name="qr_aa_bits" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test FilterForPrometheus (Dataset not in config)-->
+<array name="qr_aa_bits" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Dataset not in config)-->
   <dimension number="1" type="Direction"/>
   <dimension number="2" type="QRAABits"/>
   <data>
@@ -21,26 +21,6 @@
       <QRAABits val="cXI9MCxhYT0w" base64="1" count="7"/>
     </Direction>
   </data>
-</array>
-<array name="second_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Max Cells-->
-	<dimension number="1" type="Rcode"/>
-	<dimension number="2" type="SecondLD"/>
-	<data>
-	  	<Rcode val="2">
-			<SecondLD val="sld1.de" count="1"/>
-			<SecondLD val="sld2.de" count="2"/>
-			<SecondLD val="sld3.de" count="3"/>
-			<SecondLD val="sld4.de" count="4"/>
-			<SecondLD val="sld5.de" count="5"/>
-			<SecondLD val="sld6.de" count="6"/>
-			<SecondLD val="sld7.de" count="7"/>
-			<SecondLD val="sld8.de" count="8"/>
-			<SecondLD val="sld9.de" count="9"/>
-			<SecondLD val="sld10.de" count="10"/>
-			<SecondLD val="-:SKIPPED:-" count="1"/>
-			<SecondLD val="-:SKIPPED_SUM:-" count="1"/>
-	  	</Rcode>
-	</data>
 </array>
 <array name="priming_responses" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Buckets-->
   <dimension number="1" type="All"/>
@@ -67,22 +47,5 @@
       </ReplyLen>
       <ReplyLen val="149"/>
   </data>
-</array>
-<array name="third_ld_vs_rcode" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test EliminateDimensionTwo-->
-	<dimension number="1" type="Rcode"/>
-	<dimension number="2" type="ThirdLD"/>
-	<data>
-	  	<Rcode val="0">
-        <ThirdLD val="sld1.de" count="1"/>
-        <ThirdLD val="sld2.de" count="2"/>
-        <ThirdLD val="sld3.de" count="3"/>
-        <ThirdLD val="sld4.de" count="4"/>
-        <ThirdLD val="sld5.de" count="5"/>
-	  	</Rcode>
-	 	  <Rcode val="1">
-        <ThirdLD val="sld1.de" count="1"/>
-        <ThirdLD val="sld2.de" count="2"/>
-	  	</Rcode>
-	</data>
 </array>
 </dscdata>

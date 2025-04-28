@@ -39,19 +39,6 @@ dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="200"} 40
 dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="+Inf"} 50
 dsc_exporter_priming_responses_ReplyLen_sum{ns="ns"} 6500
 dsc_exporter_priming_responses_ReplyLen_count{ns="ns"} 50
-# HELP dsc_exporter_second_ld_vs_rcode DSC-Metric from dataset second_ld_vs_rcode
-# TYPE dsc_exporter_second_ld_vs_rcode counter
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="-:SKIPPED:-",ns="ns"} 6
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="-:SKIPPED_SUM:-",ns="ns"} 16
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld10.de",ns="ns"} 10
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld6.de",ns="ns"} 6
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld7.de",ns="ns"} 7
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld8.de",ns="ns"} 8
-dsc_exporter_second_ld_vs_rcode{Rcode="2",SecondLD="sld9.de",ns="ns"} 9
-# HELP dsc_exporter_third_ld_vs_rcode DSC-Metric from dataset third_ld_vs_rcode
-# TYPE dsc_exporter_third_ld_vs_rcode counter
-dsc_exporter_third_ld_vs_rcode{Rcode="0",ns="ns"} 15
-dsc_exporter_third_ld_vs_rcode{Rcode="1",ns="ns"} 3
 # HELP dsc_exporter_weird_dataset DSC-Metric from dataset weird_dataset
 # TYPE dsc_exporter_weird_dataset counter
 dsc_exporter_weird_dataset{ReplyLen="0",ns="ns"} 10
