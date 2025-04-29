@@ -2,6 +2,7 @@ package exporters
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -215,9 +216,10 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 	//Disabled default go_collector exports for debuging and a better overview
 	//ToDO: Enable later? Fix tests then...
 
+	log.Printf("Starting prometheus exporter http://localhost:%d", pe.Config.Prometheus.Port)
+
 	handler := promhttp.HandlerFor(pe.Registry, promhttp.HandlerOpts{})
 
 	http.Handle("/metrics", handler)
 	http.ListenAndServe(fmt.Sprintf(":%d", pe.Config.Prometheus.Port), nil)
-
 }

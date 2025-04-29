@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"slices"
 
@@ -32,6 +33,7 @@ func hasFlagSet(flag string) bool {
 func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
+	log.Printf("Parsing config %s", *configPath)
 	config := config.ParseConfig(*configPath)
 
 	if hasFlagSetShort("interval", 'i') {
