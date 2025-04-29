@@ -13,13 +13,13 @@
 	<dimension number="1" type="Rcode"/>
 	<dimension number="2" type="SecondLD"/>
 	<data>
-	  	<Rcode val="2">
-			<SecondLD val="-:SKIPPED:-" count="6"/>
-		  	<SecondLD val="-:SKIPPED_SUM:-" count="16"/>
-		  	<SecondLD val="sld10.de" count="10"/>
-			<SecondLD val="sld9.de" count="9"/>
-			<SecondLD val="sld8.de" count="8"/>
-			<SecondLD val="sld7.de" count="7"/>
+	  	<Rcode val="SERVFAIL">
+        <SecondLD val="-:SKIPPED:-" count="6"/>
+        <SecondLD val="-:SKIPPED_SUM:-" count="16"/>
+        <SecondLD val="sld10.de" count="10"/>
+        <SecondLD val="sld9.de" count="9"/>
+        <SecondLD val="sld8.de" count="8"/>
+        <SecondLD val="sld7.de" count="7"/>
 		  	<SecondLD val="sld6.de" count="6"/>	 
 	  	</Rcode>
 	</data>
@@ -64,9 +64,9 @@
   <dimension number="2" type="Qtype"/>
   <data>
     <All val="ALL">
-      <Qtype val="1" count="146"/>
-      <Qtype val="2" count="142"/>
-      <Qtype val="28" count="144"/>
+      <Qtype val="A" count="146"/>
+      <Qtype val="NS" count="142"/>
+      <Qtype val="AAAA" count="144"/>
       <Qtype val="other" count="193"/>
     </All>
   </data>

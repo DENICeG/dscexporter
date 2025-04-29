@@ -27,6 +27,18 @@ var REPLACEMENTS = map[string]map[string]string{
 		"255": "ANY",
 		"257": "CAA",
 	},
+	"Rcode": {
+		"0": "NOERROR",
+		"1": "FORMERR",
+		"2": "SERVFAIL",
+		"3": "NXDOMAIN",
+		"4": "NOTIMP",
+		"5": "REFUSED",
+		"6": "YXDOMAIN",
+		"7": "XRRSET",
+		"8": "NOTAUTH",
+		"9": "NOTZONE",
+	},
 }
 
 func MaxCells(dataset *dscparser.Dataset, x int) {
@@ -118,10 +130,10 @@ func createAllowedValuesSet(allowedValues []string) map[string]bool {
 
 func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 	allowedValuesSet := createAllowedValuesSet(allowedValues)
+	delete(allowedValuesSet, "other") // Other rows are created by this method, so they cant exist before
 	rows := []dscparser.Row{}
 	other := map[string]int{}
 	for _, row := range dataset.Data.Rows {
-
 		if allowedValuesSet[row.Value] {
 			rows = append(rows, row)
 		} else {
@@ -129,7 +141,6 @@ func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 				other[cell.Value] += cell.Count
 			}
 		}
-
 	}
 
 	otherCells := []dscparser.Cell{}
@@ -140,39 +151,32 @@ func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 			Count:   count,
 		})
 	}
-
-	rows = append(rows,
-		dscparser.Row{
-			XMLName: xml.Name{Local: dataset.DimensionInfo[0].Type},
-			Value:   "other",
-			Cells:   otherCells,
-		})
+	if len(otherCells) > 0 {
+		rows = append(rows,
+			dscparser.Row{
+				XMLName: xml.Name{Local: dataset.DimensionInfo[0].Type},
+				Value:   "other",
+				Cells:   otherCells,
+			})
+	}
 	dataset.Data.Rows = rows
 }
 
 func FilterDimensionTwo(dataset *dscparser.Dataset, allowedValues []string) {
 	allowedValuesSet := createAllowedValuesSet(allowedValues)
+	delete(allowedValuesSet, "other") // Other cells are created by this method, so they cant exist before
 	for i := range dataset.Data.Rows {
 		row := &dataset.Data.Rows[i]
 		cells := []dscparser.Cell{}
 		other := 0
-		var existingOtherCell *dscparser.Cell // Use a pointer, so nil value is posible
 		for _, cell := range row.Cells {
-			if cell.Value == "other" {
-				existingOtherCell = &cell
+			if allowedValuesSet[cell.Value] {
+				cells = append(cells, cell)
 			} else {
-				if allowedValuesSet[cell.Value] {
-					cells = append(cells, cell)
-				} else {
-					other += cell.Count
-				}
+				other += cell.Count
 			}
 		}
-		if existingOtherCell != nil {
-			existingOtherCell.Count += other
-			cells = append(cells, *existingOtherCell)
-		}
-		if existingOtherCell == nil && other > 0 {
+		if other > 0 {
 			cells = append(cells, dscparser.Cell{
 				XMLName: xml.Name{Local: dataset.DimensionInfo[1].Type},
 				Value:   "other",

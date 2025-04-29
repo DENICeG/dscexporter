@@ -60,21 +60,8 @@ func TestFilterDimensionOne(t *testing.T) {
 	testDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/test_dataset.xml")
 
 	allowedQtypes := []string{
-		"1",   // A
-		"2",   // NS
-		"5",   // CNAME
-		"6",   // SOA
-		"12",  // PTR
-		"15",  // MX
-		"16",  // TXT
-		"28",  // AAAA
-		"33",  // SRV
-		"38",  // A6
-		"43",  // DS
-		"48",  //DNSKEY
-		"65",  // HTTPS
-		"255", // ANY
-		"257", // CAA
+		"1",  // A
+		"12", // PTR
 	}
 	FilterDimensionOne(testDataset, allowedQtypes)
 
@@ -99,6 +86,19 @@ func TestFilterDimensionTwo(t *testing.T) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
 		t.Logf("Expected Output: \n%+v\n\n", expectedDataset)
 		t.Errorf("FilterDimensionTwo(test_dataset) doesnt deeply match expected_dataset")
+	}
+}
+
+func TestReplaceLabels(t *testing.T) {
+	testDataset := dscparser.ParseDataset("./testdata/aggregation/ReplaceLabels/test_dataset.xml")
+	ReplaceLabels(testDataset)
+
+	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/ReplaceLabels/expected_dataset.xml")
+
+	if !testDataset.Equals(*expectedDataset) {
+		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
+		t.Logf("Expected Output: \n%+v\n\n", expectedDataset)
+		t.Errorf("ReplaceLabels(test_dataset) doesnt deeply match expected_dataset")
 	}
 }
 

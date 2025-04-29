@@ -2,6 +2,7 @@ package config
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -36,6 +37,7 @@ func TestIsFilter(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["qtype"]
 	isFilter, allowedValues := metricConfig.IsFilter("Qtype")
 	assert.True(t, isFilter)
+	slices.Sort(allowedValues)
 	assert.Equal(t, allowedValues, []string{"A", "AAAA", "NS"})
 }
 

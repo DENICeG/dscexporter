@@ -7,7 +7,7 @@
 		<Qtype val="1">
 			<TLD val="de" count="140" />
 			<TLD val="localhost" count="48" />
-			<TLD val="other" count="184" />
+			<TLD val="other" count="194" />
 		</Qtype>
 		<Qtype val="12">
 			<TLD val="de" count="55" />
@@ -19,6 +19,9 @@
 		</Qtype>
 		<Qtype val="14">
 			<TLD val="de" count="55" />
+		</Qtype>
+		<Qtype val="other"> 
+			<TLD val="de" count="10" />
 		</Qtype>
 	</data>
 </array>

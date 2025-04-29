@@ -1,0 +1,18 @@
+<array name="qtype_vs_rcode" dimensions="2" start_time="1741249500" stop_time="1741249560">
+	<dimension number="1" type="Qtype" />
+	<dimension number="2" type="Rcode" />
+	<data>
+		<Qtype val="A">
+			<Rcode val="NOERROR" count="33"/>
+			<Rcode val="NOTZONE" count="33"/>
+			<Rcode val="other" count="66"/>
+		</Qtype>
+		<Qtype val="NS">
+			<Rcode val="NOERROR" count="22"/> 
+		</Qtype>
+		<Qtype val="other">
+			<Rcode val="FORMERR" count="32"/>
+			<Rcode val="SERVFAIL" count="22"/>
+		</Qtype>
+	</data>
+</array>

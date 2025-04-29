@@ -67,7 +67,7 @@ func (ds *Dataset) Sort() {
 func (ds Dataset) Equals(ds2 Dataset) bool {
 	if len(ds.DimensionInfo) != len(ds2.DimensionInfo) || ds.Dimensions != ds2.Dimensions ||
 		ds.StartTime != ds2.StartTime || ds.StopTime != ds2.StopTime ||
-		ds.Name != ds2.Name {
+		ds.Name != ds2.Name || len(ds.Data.Rows) != len(ds2.Data.Rows) {
 		return false
 	}
 	for i := range ds.DimensionInfo {

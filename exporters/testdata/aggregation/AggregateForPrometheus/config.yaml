@@ -26,6 +26,6 @@ prometheus:
         Qtype:
           type: Filter
           params:
-            "1": {}
-            "2": {}
-            "28": {}
+            "A": {}
+            "NS": {}
+            "AAAA": {}
