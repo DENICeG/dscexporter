@@ -9,8 +9,25 @@ import (
 	"github.com/DENICeG/dscexporter/dscparser"
 )
 
-//ToDo: Keine MaxRows! Einfach keine Änderung.
-//ToDo: MaxCells Testen
+var REPLACEMENTS = map[string]map[string]string{
+	"Qtype": {
+		"1":   "A",
+		"2":   "NS",
+		"5":   "CNAME",
+		"6":   "SOA",
+		"12":  "PTR",
+		"15":  "MX",
+		"16":  "TXT",
+		"28":  "AAAA",
+		"33":  "SRV",
+		"38":  "A6",
+		"43":  "DS",
+		"48":  "DNSKEY",
+		"65":  "HTTPS",
+		"255": "ANY",
+		"257": "CAA",
+	},
+}
 
 func MaxCells(dataset *dscparser.Dataset, x int) {
 	// Sort Cells
@@ -104,6 +121,7 @@ func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 	rows := []dscparser.Row{}
 	other := map[string]int{}
 	for _, row := range dataset.Data.Rows {
+
 		if allowedValuesSet[row.Value] {
 			rows = append(rows, row)
 		} else {
@@ -111,6 +129,7 @@ func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 				other[cell.Value] += cell.Count
 			}
 		}
+
 	}
 
 	otherCells := []dscparser.Cell{}
@@ -121,6 +140,7 @@ func FilterDimensionOne(dataset *dscparser.Dataset, allowedValues []string) {
 			Count:   count,
 		})
 	}
+
 	rows = append(rows,
 		dscparser.Row{
 			XMLName: xml.Name{Local: dataset.DimensionInfo[0].Type},
@@ -136,14 +156,23 @@ func FilterDimensionTwo(dataset *dscparser.Dataset, allowedValues []string) {
 		row := &dataset.Data.Rows[i]
 		cells := []dscparser.Cell{}
 		other := 0
+		var existingOtherCell *dscparser.Cell // Use a pointer, so nil value is posible
 		for _, cell := range row.Cells {
-			if allowedValuesSet[cell.Value] {
-				cells = append(cells, cell)
+			if cell.Value == "other" {
+				existingOtherCell = &cell
 			} else {
-				other += cell.Count
+				if allowedValuesSet[cell.Value] {
+					cells = append(cells, cell)
+				} else {
+					other += cell.Count
+				}
 			}
 		}
-		if other > 0 {
+		if existingOtherCell != nil {
+			existingOtherCell.Count += other
+			cells = append(cells, *existingOtherCell)
+		}
+		if existingOtherCell == nil && other > 0 {
 			cells = append(cells, dscparser.Cell{
 				XMLName: xml.Name{Local: dataset.DimensionInfo[1].Type},
 				Value:   "other",
@@ -152,6 +181,47 @@ func FilterDimensionTwo(dataset *dscparser.Dataset, allowedValues []string) {
 		}
 		row.Cells = cells
 	}
+}
+
+func getAllowedValuesForLabel(label string) []string {
+	allowedValues := []string{}
+	if replacementsForLabel, ok := REPLACEMENTS[label]; ok {
+		for key, _ := range replacementsForLabel {
+			allowedValues = append(allowedValues, key)
+		}
+	}
+	return allowedValues
+}
+
+func ReplaceLabels(dataset *dscparser.Dataset) {
+
+	label1 := dataset.DimensionInfo[0].Type
+	if _, ok := REPLACEMENTS[label1]; ok {
+		allowedValues := getAllowedValuesForLabel(label1)
+		FilterDimensionOne(dataset, allowedValues)
+		for i := range dataset.Data.Rows {
+			row := &dataset.Data.Rows[i]
+			if newValue, ok := REPLACEMENTS[label1][row.Value]; ok {
+				row.Value = newValue
+			}
+		}
+	}
+
+	label2 := dataset.DimensionInfo[1].Type
+	if _, ok := REPLACEMENTS[label2]; ok {
+		allowedValues := getAllowedValuesForLabel(label2)
+		FilterDimensionTwo(dataset, allowedValues)
+		for i := range dataset.Data.Rows {
+			row := &dataset.Data.Rows[i]
+			for j := range row.Cells {
+				cell := &row.Cells[j]
+				if newValue, ok := REPLACEMENTS[label2][cell.Value]; ok {
+					cell.Value = newValue
+				}
+			}
+		}
+	}
+
 }
 
 func AggregateForPrometheus(dscData *dscparser.DSCData, config config.Config) {
@@ -163,7 +233,9 @@ func AggregateForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 		if !ok {
 			continue
 		}
+		ReplaceLabels(dataset)
 
+		//Aggregate dimension 1
 		label1 := dataset.DimensionInfo[0].Type
 		if metricConfig.IsEliminateDimension(label1) {
 			EliminateDimensionOne(&dscData.Datasets[i])
@@ -172,11 +244,12 @@ func AggregateForPrometheus(dscData *dscparser.DSCData, config config.Config) {
 			FilterDimensionOne(dataset, allowedValues)
 		}
 
+		//Aggregate dimension 2
 		label2 := dataset.DimensionInfo[1].Type
 		if metricConfig.IsEliminateDimension(label2) {
 			EliminateDimensionTwo(&dscData.Datasets[i])
 		}
-		if isBucket, params := metricConfig.IsMaxCells(label2); isBucket {
+		if isBucket, params := metricConfig.IsMaxCells(label2); isBucket { // max cells only works on dimension 2
 			MaxCells(&dscData.Datasets[i], params.X)
 		}
 		if isFilter, allowedValues := metricConfig.IsFilter(label2); isFilter {

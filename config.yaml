@@ -1,90 +1,76 @@
 prometheus:
 
   metrics: 
-    pcap_stats: {}
-    servfail_qname:
-      aggregations: 
-        Qname:
-          type: MaxCells
-          params: 
-            x: 3
-    qr_aa_bits: {}
-    priming_responses: 
+    # pcap_stats: {} # Nicht im dsp
+    # servfail_qname
+    qr_aa_bits: {} #  For Query Attributes -> QR and AA Plot
+    priming_responses: # Für Priming Responses plot
       aggregations: 
         ReplyLen:
           type: Bucket
           params: 
-            start: 0
+            start: 0 # TODO: -1 Starten??
             width: 50
-            count: 22
-    priming_queries: {}
-    dns_ip_version_vs_qtype: {}
-    direction_vs_ipproto: {}
-    third_ld_vs_rcode:
+            count: 26
+    priming_queries: # Für Priming Queries plot
       aggregations: 
-        ThirdLD:
-          type: MaxCells
-          params: 
-            x: 3
-    second_ld_vs_rcode:
+        EDNSBufSiz:
+          type: EliminateDimension
+    dns_ip_version_vs_qtype: {} # Für IP Version plot
+    direction_vs_ipproto: {} # Für IP protocol plot
+    # third_ld_vs_rcode
+    # second_ld_vs_rcode
+    client_port_range: # Für Source Ports plot
       aggregations: 
-        SecondLD:
-          type: MaxCells
+        PortRange:
+          type: Bucket
           params: 
-            x: 3
-    client_port_range: {} #ToDo: Parse to bucket?
-    transport_vs_qtype: {}
-    ipv6_rsn_abusers: {}
-    idn_vs_tld: {}
-    rd_bit: {}
-    do_bit: {}
-    edns_bufsiz: {} #ToDo: Parse to bucket?
-    edns_version: {}
-    idn_qname: {}
-    chaos_types_and_names: 
+            start: -1
+            width: 1024
+            count: 64 # TODO: Überprüfen, zu viel??
+            none_counter: true
+            use_midpoint: true 
+    transport_vs_qtype: {}  # Für DNS Transport plot
+    # ipv6_rsn_abusers 
+    # idn_vs_tld: {} # Nicht im dsp
+    rd_bit: {} # For Query Attributes -> RD bit plot
+    do_bit: {} # For Query Attributes -> DO bit plot
+    edns_bufsiz:  #  For Query Attributes -> EDNS Bufsiz
       aggregations: 
-        Qname:
-          type: MaxCells
+        EDNSBufSiz:
+          type: Bucket
           params: 
-            x: 3
-    client_addr_vs_rcode: 
-      aggregations: 
-        ClientAddr:
-          type: MaxCells
-          params: 
-            x: 3
-    client_subnet2:
-      aggregations: 
-        ClientSubnet:
-          type: MaxCells
-          params: 
-            x: 3
-    certain_qnames_vs_qtype: {}
-    qtype_vs_tld: {}
-    qtype_vs_qnamelen: 
+            start: -1
+            width: 512
+            count: 9 # TODO: Überprüfen
+            none_counter: true
+            use_midpoint: true
+    edns_version: {} #  For Query Attributes -> EDNS Version
+    idn_qname: {} # For Query Attributes -> idn Qnames plot
+    chaos_types_and_names: {} # Für CHAOS plot TODO: Security? Was wenn man andere qnames abfragt?
+    # client_addr_vs_rcode: 
+    # client_subnet2:
+    certain_qnames_vs_qtype: {} # Schon wieder qtype
+    # qtype_vs_tld: {} # Nicht im dsp
+    qtype_vs_qnamelen: # Für Qname Length plot
       aggregations: 
         QnameLen:
           type: Bucket
           params: 
-            start: 0
-            width: 50
-            count: 22 
-    client_subnet: 
-      aggregations: 
-        ClientSubnet:
-          type: MaxCells
-          params: 
-            x: 3
-    rcode_vs_replylen:
+            start: 0 # TODO: -1 Starten??
+            width: 5
+            count: 12
+    # client_subnet: 
+    rcode_vs_replylen: # Für Reply Lengths plot
       aggregations: 
         ReplyLen:
           type: Bucket
           params: 
-            start: 0
+            start: 0 # TODO: -1 Starten??
             width: 50
-            count: 22
-    opcode: {}
-    rcode: {}
-    qtype: {}
+            count: 26
+    opcode: {} # For opcodes plot
+    rcode: {} # For rcodee plot
+    qtype: {} # For qtypes plot
 
-interval: 1s
+interval: 60s
