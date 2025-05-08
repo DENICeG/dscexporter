@@ -22,7 +22,6 @@ func checkError(err error) {
 
 func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExporter) {
 
-	//ToDo: Log progress info?
 	locationFolders, _ := os.ReadDir(config.DataDir)
 	for _, locationFolder := range locationFolders {
 		if !locationFolder.IsDir() {
@@ -45,6 +44,11 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 
 					dscFilePath := filepath.Join(nsFolderPath, dscFile.Name())
 					dscData := dscparser.ReadFile(dscFilePath, locationFolder.Name(), nsFolder.Name())
+
+					stopTime := dscData.Datasets[0].StopTime
+					stopTimeUnix := time.Unix(int64(stopTime), 0)
+					log.Printf("Exporting %s - %d (%s)", dscData.NameServer, stopTime, stopTimeUnix)
+
 					exporter.ExportDSCData(dscData)
 
 					if config.RemoveReadFiles {
@@ -74,5 +78,4 @@ func Run(config config.Config, exporter *exporters.PrometheusExporter, function 
 		log.Printf("Parsing took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
 		time.Sleep(sleepDuration)
 	}
-
 }
