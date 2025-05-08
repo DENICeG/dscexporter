@@ -45,9 +45,10 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 					dscFilePath := filepath.Join(nsFolderPath, dscFile.Name())
 					dscData := dscparser.ReadFile(dscFilePath, locationFolder.Name(), nsFolder.Name())
 
-					stopTime := dscData.Datasets[0].StopTime
-					stopTimeUnix := time.Unix(int64(stopTime), 0)
-					log.Printf("Exporting %s - %d (%s)", dscData.NameServer, stopTime, stopTimeUnix)
+					now := time.Now()
+					stopTimeRaw := dscData.Datasets[0].StopTime
+					stopTime := time.Unix(int64(stopTimeRaw), 0)
+					log.Printf("Exporting %s - %d (Stop time: %s) - Delay: %s", dscData.NameServer, stopTimeRaw, stopTime, now.Sub(stopTime))
 
 					exporter.ExportDSCData(dscData)
 
