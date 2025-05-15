@@ -45,6 +45,21 @@ var REPLACEMENTS = map[string]map[string]string{
 		"8": "NOTAUTH",
 		"9": "NOTZONE",
 	},
+	"Opcode": {
+		"0": "Query",
+		"1": "IQuery",
+		"2": "Status",
+		"3": "Unassigned",
+		"4": "Notify",
+		"5": "Update",
+		"6": "DSO",
+	},
+	"QRAABits": { // Yes, you could just base64 decode, but this works too
+		"cXI9MCxhYT0w": "qr=0,aa=0",
+		"cXI9MSxhYT0w": "qr=1,aa=0",
+		"cXI9MSxhYT0x": "qr=1,aa=1",
+		"cXI9MCxhYT0x": "qr=0,aa=1",
+	},
 }
 
 func MaxCells(dataset *dscparser.Dataset, x int) {

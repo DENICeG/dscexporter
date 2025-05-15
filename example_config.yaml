@@ -1,40 +1,5 @@
 prometheus:
-
   metrics: 
-    # pcap_stats: {} # Nicht im dsp
-    # servfail_qname
-    # qr_aa_bits: {} #  For Query Attributes -> QR and AA Plot
-    # priming_responses: # Für Priming Responses plot
-    #   aggregations: 
-    #     ReplyLen:
-    #       type: Bucket
-    #       params: 
-    #         start: 0 # TODO: -1 Starten??
-    #         width: 50
-    #         count: 26
-    # priming_queries: # Für Priming Queries plot
-    #   aggregations: 
-    #     EDNSBufSiz:
-    #       type: EliminateDimension
-    # dns_ip_version_vs_qtype: {} # Für IP Version plot
-    # direction_vs_ipproto: {} # Für IP protocol plot
-    # # third_ld_vs_rcode
-    # # second_ld_vs_rcode
-    # client_port_range: # Für Source Ports plot
-    #   aggregations: 
-    #     PortRange:
-    #       type: Bucket
-    #       params: 
-    #         start: -1
-    #         width: 1024
-    #         count: 64 # TODO: Überprüfen, zu viel??
-    #         none_counter: true
-    #         use_midpoint: true 
-    # transport_vs_qtype: {}  # Für DNS Transport plot
-    # # ipv6_rsn_abusers 
-    # # idn_vs_tld: {} # Nicht im dsp
-    # rd_bit: {} # For Query Attributes -> RD bit plot
-    # do_bit: {} # For Query Attributes -> DO bit plot
     edns_bufsiz:  #  For Query Attributes -> EDNS Bufsiz
       aggregations: 
         EDNSBufSiz:
@@ -52,32 +17,87 @@ prometheus:
           params: 
             "0": {}
             "none": {}
-    #  For Query Attributes -> EDNS Version
-    # idn_qname: {} # For Query Attributes -> idn Qnames plot
-    # chaos_types_and_names: {} # Für CHAOS plot TODO: Security? Was wenn man andere qnames abfragt?
-    # # client_addr_vs_rcode: 
-    # # client_subnet2:
-    # certain_qnames_vs_qtype: {} # Schon wieder qtype
-    # # qtype_vs_tld: {} # Nicht im dsp
-    # qtype_vs_qnamelen: # Für Qname Length plot
-    #   aggregations: 
-    #     QnameLen:
-    #       type: Bucket
-    #       params: 
-    #         start: 0 # TODO: -1 Starten??
-    #         width: 5
-    #         count: 12
-    # # client_subnet: 
-    # rcode_vs_replylen: # Für Reply Lengths plot
-    #   aggregations: 
-    #     ReplyLen:
-    #       type: Bucket
-    #       params: 
-    #         start: 0 # TODO: -1 Starten??
-    #         width: 50
-    #         count: 26
-    # opcode: {} # For opcodes plot
+    idn_qname: {}  # For Query Attributes -> idn Qnames plot
+    rd_bit: {} # For Query Attributes -> RD bit plot
+    do_bit: {} # For Query Attributes -> DO bit plot
     rcode: {} # For rcodesrcode plot
     qtype: {} # For qtypes plot
+    client_port_range: # Für Source Ports plot
+      aggregations: 
+        PortRange:
+          type: Bucket
+          params: 
+            start: 1023
+            width: 1024
+            count: 64 # TODO: Überprüfen, zu viel??
+            none_counter: true
+            use_midpoint: true 
+    qtype_vs_qnamelen: # Für Qname Length plot
+      aggregations: 
+        QnameLen:
+          type: Bucket
+          params: 
+            start: 3 # TODO: -1 Starten??
+            width: 4
+            count: 16
+    rcode_vs_replylen: # Für Reply Lengths plot
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 31
+            width: 32
+            count: 40
+    dns_ip_version_vs_qtype: {} # Für IP Version and qtype plot 
+    direction_vs_ipproto: {} # Für IP protocol plot
+    transport_vs_qtype: {}  # Für DNS Transport plot
+    opcode: {} # For opcodes plot
+    qtype_vs_tld: 
+      aggregations: 
+        TLD: 
+          type: Filter
+          params: 
+            "de": {}
+            "localhost": {}
+    qr_aa_bits: {} #  For Query Attributes -> QR and AA Plot
+    chaos_types_and_names:  # Für CHAOS plot 
+      aggregations: 
+        Qname: 
+          type: Filter
+          params: 
+            "hostname.bind": {}
+            "version.bind": {}
+    priming_responses: # Für Priming Responses plot
+      aggregations: 
+        ReplyLen:
+          type: Bucket
+          params: 
+            start: 31
+            width: 32
+            count: 40
+    priming_queries: # Für Priming Queries plot
+      aggregations: 
+        EDNSBufSiz:
+          type: Bucket
+          params: 
+            start: 511
+            width: 512
+            count: 9
+            none_counter: true
+            use_midpoint: true
+    pcap_stats: {} # New plot?
 
-interval: 60s
+    # Not exported:
+    # servfail_qname
+    # second_ld_vs_rcode
+    # third_ld_vs_rcode
+
+    # idn_vs_tld: {} # Nicht im dsp
+    # certain_qnames_vs_qtype
+
+    # ipv6_rsn_abusers 
+    # client_addr_vs_rcode:
+    # client_subnet2
+    # client_subnet
+
+interval: 5s
