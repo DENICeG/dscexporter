@@ -29,7 +29,7 @@ func NewPrometheusExporter(config config.Config) *PrometheusExporter {
 			Name: "dsc_exporter_parsed_files",
 			Help: "How many files the dsc exporter parsed for each ns",
 		},
-		[]string{"ns"},
+		[]string{"loc", "ns"},
 	)
 	registry.MustRegister(filesCounter)
 	return &PrometheusExporter{Metrics: make(map[string]interface{}), Registry: registry, Config: config, FilesCounter: filesCounter}
@@ -62,8 +62,8 @@ func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, l
 
 func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, metricConfig config.MetricConfig) {
 
-	//First label is always nameserver
-	var labels []string = []string{"ns"}
+	//First label is always loc, secend ist ns
+	var labels []string = []string{"loc", "ns"}
 	var buckets []float64
 
 	label1 := dataset.DimensionInfo[0].Type
@@ -94,7 +94,7 @@ func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, met
 }
 
 func (pe *PrometheusExporter) createMissingCounter(dataset dscparser.Dataset) {
-	var labels []string = []string{"ns"}
+	var labels []string = []string{"loc", "ns"}
 	for _, dimensionInfo := range dataset.DimensionInfo {
 		label := dimensionInfo.Type
 		if label != "All" {
@@ -165,7 +165,7 @@ func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricCon
 	}
 }
 
-func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServer string) {
+func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location string, nameserver string) {
 	metric := pe.Metrics[dataset.Name]
 	metricConfig := pe.Config.Prometheus.Metrics[dataset.Name]
 
@@ -176,7 +176,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, nameServ
 		for _, cell := range row.Cells {
 
 			//First label is always nameserver
-			var labelValues []string = []string{nameServer}
+			var labelValues []string = []string{location, nameserver}
 
 			if label1 != "All" {
 				labelValues = append(labelValues, row.Value)
@@ -206,9 +206,9 @@ func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
 		if _, ok := pe.Metrics[dataset.Name]; !ok {
 			continue
 		}
-		pe.ExportDataset(&dataset, dscData.NameServer)
+		pe.ExportDataset(&dataset, dscData.Location, dscData.NameServer)
 	}
-	pe.FilesCounter.WithLabelValues(dscData.NameServer).Inc()
+	pe.FilesCounter.WithLabelValues(dscData.Location, dscData.NameServer).Inc()
 }
 
 func (pe *PrometheusExporter) StartPrometheusExporter() {

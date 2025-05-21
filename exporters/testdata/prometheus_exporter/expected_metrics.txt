@@ -1,21 +1,21 @@
 # HELP dsc_exporter_parsed_files How many files the dsc exporter parsed for each ns
 # TYPE dsc_exporter_parsed_files counter
-dsc_exporter_parsed_files{ns="ns"} 1
+dsc_exporter_parsed_files{loc="loc",ns="ns"} 1
 # HELP dsc_exporter_pcap_stats DSC-Metric from dataset pcap_stats
 # TYPE dsc_exporter_pcap_stats counter
-dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="filter_received"} 8
-dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="pkts_captured"} 8
+dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="filter_received"} 8
+dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="pkts_captured"} 8
 # HELP dsc_exporter_priming_responses_ReplyLen DSC-Metric from dataset priming_responses for ReplyLen
 # TYPE dsc_exporter_priming_responses_ReplyLen histogram
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="0"} 10
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="50"} 10
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="100"} 20
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="150"} 40
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="200"} 40
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="+Inf"} 50
-dsc_exporter_priming_responses_ReplyLen_sum{ns="ns"} 6500
-dsc_exporter_priming_responses_ReplyLen_count{ns="ns"} 50
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="0"} 10
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="50"} 10
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="100"} 20
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="150"} 40
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="200"} 40
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="+Inf"} 50
+dsc_exporter_priming_responses_ReplyLen_sum{loc="loc",ns="ns"} 6500
+dsc_exporter_priming_responses_ReplyLen_count{loc="loc",ns="ns"} 50
 # HELP dsc_exporter_weird_dataset DSC-Metric from dataset weird_dataset
 # TYPE dsc_exporter_weird_dataset counter
-dsc_exporter_weird_dataset{ReplyLen="0",ns="ns"} 10
-dsc_exporter_weird_dataset{ReplyLen="100",ns="ns"} 10
+dsc_exporter_weird_dataset{ReplyLen="0",loc="loc",ns="ns"} 10
+dsc_exporter_weird_dataset{ReplyLen="100",loc="loc",ns="ns"} 10

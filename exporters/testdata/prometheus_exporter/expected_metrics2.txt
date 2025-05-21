@@ -1,45 +1,45 @@
 # HELP dsc_exporter_parsed_files How many files the dsc exporter parsed for each ns
 # TYPE dsc_exporter_parsed_files counter
-dsc_exporter_parsed_files{ns="ns"} 2
+dsc_exporter_parsed_files{loc="loc",ns="ns"} 2
 # HELP dsc_exporter_pcap_stats DSC-Metric from dataset pcap_stats
 # TYPE dsc_exporter_pcap_stats counter
-dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="filter_received"} 16
-dsc_exporter_pcap_stats{ifname="ens2f0",ns="ns",pcap_stat="pkts_captured"} 16
+dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="filter_received"} 16
+dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="pkts_captured"} 16
 # HELP dsc_exporter_priming_queries_EDNSBufSiz DSC-Metric from dataset priming_queries for EDNSBufSiz - DO NOT use the _sum value! This metric is based of a ranges in the dsc files, so the _sum value cant be calculated correctly
 # TYPE dsc_exporter_priming_queries_EDNSBufSiz histogram
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="-1"} 0
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="511"} 0
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="1023"} 2
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="1535"} 5
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="2047"} 5
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="2559"} 5
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",ns="ns",le="+Inf"} 9
-dsc_exporter_priming_queries_EDNSBufSiz_sum{Transport="tcp",ns="ns"} 22779.5
-dsc_exporter_priming_queries_EDNSBufSiz_count{Transport="tcp",ns="ns"} 9
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="-1"} 0
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="511"} 0
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="1023"} 5
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="1535"} 8
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="2047"} 10
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="2559"} 10
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",ns="ns",le="+Inf"} 11
-dsc_exporter_priming_queries_EDNSBufSiz_sum{Transport="udp",ns="ns"} 15610.5
-dsc_exporter_priming_queries_EDNSBufSiz_count{Transport="udp",ns="ns"} 11
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="-1"} 0
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="511"} 0
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="1023"} 2
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="1535"} 5
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="2047"} 5
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="2559"} 5
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="+Inf"} 9
+dsc_exporter_priming_queries_EDNSBufSiz_sum{Transport="tcp",loc="loc",ns="ns"} 22779.5
+dsc_exporter_priming_queries_EDNSBufSiz_count{Transport="tcp",loc="loc",ns="ns"} 9
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="-1"} 0
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="511"} 0
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="1023"} 5
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="1535"} 8
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="2047"} 10
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="2559"} 10
+dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="+Inf"} 11
+dsc_exporter_priming_queries_EDNSBufSiz_sum{Transport="udp",loc="loc",ns="ns"} 15610.5
+dsc_exporter_priming_queries_EDNSBufSiz_count{Transport="udp",loc="loc",ns="ns"} 11
 # HELP dsc_exporter_priming_queries_EDNSBufSiz_None DSC-Metric from dataset priming_queries for EDNSBufSiz for value None
 # TYPE dsc_exporter_priming_queries_EDNSBufSiz_None counter
-dsc_exporter_priming_queries_EDNSBufSiz_None{Transport="tcp",ns="ns"} 1
-dsc_exporter_priming_queries_EDNSBufSiz_None{Transport="udp",ns="ns"} 4
+dsc_exporter_priming_queries_EDNSBufSiz_None{Transport="tcp",loc="loc",ns="ns"} 1
+dsc_exporter_priming_queries_EDNSBufSiz_None{Transport="udp",loc="loc",ns="ns"} 4
 # HELP dsc_exporter_priming_responses_ReplyLen DSC-Metric from dataset priming_responses for ReplyLen
 # TYPE dsc_exporter_priming_responses_ReplyLen histogram
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="0"} 10
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="50"} 10
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="100"} 20
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="150"} 40
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="200"} 40
-dsc_exporter_priming_responses_ReplyLen_bucket{ns="ns",le="+Inf"} 50
-dsc_exporter_priming_responses_ReplyLen_sum{ns="ns"} 6500
-dsc_exporter_priming_responses_ReplyLen_count{ns="ns"} 50
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="0"} 10
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="50"} 10
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="100"} 20
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="150"} 40
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="200"} 40
+dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="+Inf"} 50
+dsc_exporter_priming_responses_ReplyLen_sum{loc="loc",ns="ns"} 6500
+dsc_exporter_priming_responses_ReplyLen_count{loc="loc",ns="ns"} 50
 # HELP dsc_exporter_weird_dataset DSC-Metric from dataset weird_dataset
 # TYPE dsc_exporter_weird_dataset counter
-dsc_exporter_weird_dataset{ReplyLen="0",ns="ns"} 10
-dsc_exporter_weird_dataset{ReplyLen="100",ns="ns"} 10
+dsc_exporter_weird_dataset{ReplyLen="0",loc="loc",ns="ns"} 10
+dsc_exporter_weird_dataset{ReplyLen="100",loc="loc",ns="ns"} 10
