@@ -1,0 +1,15 @@
+[Unit]
+Description=DSC Exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/dscexporter -c /etc/dscexporter/config.yaml
+TimeoutSec=60
+Restart=on-failure
+RestartSec=5
+User=<USER>
+Group=<GROUP>
+
+[Install]
+WantedBy=multi-user.target
