@@ -1,4 +1,4 @@
-package exporters
+package aggregation
 
 import (
 	"cmp"
@@ -12,10 +12,10 @@ import (
 func TestMaxCells(t *testing.T) {
 	x := 5
 
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/MaxCells/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/MaxCells/test_dataset.xml")
 	MaxCells(testDataset, x)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/MaxCells/expected_dataset.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/MaxCells/expected_dataset.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -25,7 +25,7 @@ func TestMaxCells(t *testing.T) {
 }
 
 func TestEliminateDimensionOne(t *testing.T) {
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/EliminateDimension/Dimension1/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/EliminateDimension/Dimension1/test_dataset.xml")
 
 	EliminateDimensionOne(testDataset)
 	//Sort cells after label
@@ -34,7 +34,7 @@ func TestEliminateDimensionOne(t *testing.T) {
 	}
 	slices.SortFunc(testDataset.Data.Rows[0].Cells, cmpCell)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/EliminateDimension/Dimension1/expected_dataset.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/EliminateDimension/Dimension1/expected_dataset.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -44,10 +44,10 @@ func TestEliminateDimensionOne(t *testing.T) {
 }
 
 func TestEliminateDimensionTwo(t *testing.T) {
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/EliminateDimension/Dimension2/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/EliminateDimension/Dimension2/test_dataset.xml")
 	EliminateDimensionTwo(testDataset)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/EliminateDimension/Dimension2/expected_dataset.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/EliminateDimension/Dimension2/expected_dataset.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -57,7 +57,7 @@ func TestEliminateDimensionTwo(t *testing.T) {
 }
 
 func TestFilterDimensionOne(t *testing.T) {
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/Filter/test_dataset.xml")
 
 	allowedQtypes := []string{
 		"1",  // A
@@ -65,7 +65,7 @@ func TestFilterDimensionOne(t *testing.T) {
 	}
 	FilterDimensionOne(testDataset, allowedQtypes)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/expected_dataset_dim1.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/Filter/expected_dataset_dim1.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -75,12 +75,12 @@ func TestFilterDimensionOne(t *testing.T) {
 }
 
 func TestFilterDimensionTwo(t *testing.T) {
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/Filter/test_dataset.xml")
 
 	allowedTlds := []string{"de", "localhost"}
 	FilterDimensionTwo(testDataset, allowedTlds)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/Filter/expected_dataset_dim2.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/Filter/expected_dataset_dim2.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -90,10 +90,10 @@ func TestFilterDimensionTwo(t *testing.T) {
 }
 
 func TestReplaceLabels(t *testing.T) {
-	testDataset := dscparser.ParseDataset("./testdata/aggregation/ReplaceLabels/test_dataset.xml")
+	testDataset := dscparser.ParseDataset("./testdata/ReplaceLabels/test_dataset.xml")
 	ReplaceLabels(testDataset)
 
-	expectedDataset := dscparser.ParseDataset("./testdata/aggregation/ReplaceLabels/expected_dataset.xml")
+	expectedDataset := dscparser.ParseDataset("./testdata/ReplaceLabels/expected_dataset.xml")
 
 	if !testDataset.Equals(*expectedDataset) {
 		t.Logf("Test Dataset: \n%+v\n\n", testDataset)
@@ -104,12 +104,12 @@ func TestReplaceLabels(t *testing.T) {
 
 func TestAggregateForPrometheus(t *testing.T) {
 
-	config := config.ParseConfig("./testdata/aggregation/AggregateForPrometheus/config.yaml")
+	config := config.ParseConfig("./testdata/AggregateForPrometheus/config.yaml")
 
-	testDSCData := dscparser.ReadFile("./testdata/aggregation/AggregateForPrometheus/test_dsc_file.xml", "loc", "ns")
+	testDSCData := dscparser.ReadFile("./testdata/AggregateForPrometheus/test_dsc_file.xml", "loc", "ns")
 	AggregateForPrometheus(testDSCData, config)
 
-	expectedDSCData := dscparser.ReadFile("./testdata/aggregation/AggregateForPrometheus/expected_dsc_file.xml", "loc", "ns")
+	expectedDSCData := dscparser.ReadFile("./testdata/AggregateForPrometheus/expected_dsc_file.xml", "loc", "ns")
 
 	if !testDSCData.Equals(*expectedDSCData) {
 		t.Logf("Test Data: \n%+v\n\n", testDSCData)

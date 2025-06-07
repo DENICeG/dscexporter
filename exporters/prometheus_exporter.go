@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DENICeG/dscexporter/aggregation"
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
 
@@ -200,7 +201,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location
 }
 
 func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
-	AggregateForPrometheus(dscData, pe.Config)
+	aggregation.AggregateForPrometheus(dscData, pe.Config)
 	pe.createMissingMetrics(dscData)
 	for _, dataset := range dscData.Datasets {
 		if _, ok := pe.Metrics[dataset.Name]; !ok {
