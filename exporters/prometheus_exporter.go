@@ -11,16 +11,18 @@ import (
 	"github.com/DENICeG/dscexporter/aggregation"
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
+	"k8s.io/component-base/metrics/prometheusextension"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type PrometheusExporter struct {
-	Metrics      map[string]interface{}
-	FilesCounter *prometheus.CounterVec
-	Registry     *prometheus.Registry
-	Config       config.Config
+	Metrics           map[string]interface{}
+	FilesCounter      *prometheus.CounterVec
+	Registry          *prometheus.Registry
+	Config            config.Config
+	WeightedHistogram prometheusextension.WeightedHistogramVec
 }
 
 func NewPrometheusExporter(config config.Config) *PrometheusExporter {
@@ -37,13 +39,13 @@ func NewPrometheusExporter(config config.Config) *PrometheusExporter {
 }
 
 func (pe *PrometheusExporter) addHistogram(metricName string, metricHelp string, buckets []float64, labels []string, key string) {
-	metric := prometheus.NewHistogramVec(
+	metric := prometheusextension.NewWeightedHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    metricName,
 			Help:    metricHelp,
 			Buckets: buckets,
 		},
-		labels,
+		labels...,
 	)
 	pe.Registry.MustRegister(metric)
 	pe.Metrics[key] = metric
@@ -136,7 +138,7 @@ func checkError(err error) {
 	}
 }
 
-func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricConfig config.MetricConfig, metric *prometheus.HistogramVec, label2 string, labelValues []string, value string, count int) {
+func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricConfig config.MetricConfig, metric *prometheusextension.WeightedHistogramVec, label2 string, labelValues []string, value string, count int) {
 
 	_, bucketParams := metricConfig.IsBucket(label2)
 	if value == "None" && bucketParams.NoneCounter {
@@ -161,9 +163,7 @@ func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricCon
 		bucket = float64(cellValue)
 	}
 
-	for i := 0; i < count; i++ {
-		metric.WithLabelValues(labelValues...).Observe(bucket)
-	}
+	metric.WithLabelValues(labelValues...).ObserveWithWeight(bucket, uint64(count))
 }
 
 func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location string, nameserver string) {
@@ -187,7 +187,7 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location
 			}
 
 			switch metricCasted := metric.(type) {
-			case *prometheus.HistogramVec:
+			case *prometheusextension.WeightedHistogramVec:
 				pe.updateBucket(dataset, metricConfig, metricCasted, label2, labelValues, cell.Value, cell.Count)
 			case *prometheus.CounterVec:
 				metricCasted.WithLabelValues(labelValues...).Add(float64(cell.Count))

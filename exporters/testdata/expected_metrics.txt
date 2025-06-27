@@ -5,7 +5,7 @@ dsc_exporter_parsed_files{loc="loc",ns="ns"} 1
 # TYPE dsc_exporter_pcap_stats counter
 dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="filter_received"} 8
 dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="pkts_captured"} 8
-# HELP dsc_exporter_priming_responses_ReplyLen DSC-Metric from dataset priming_responses for ReplyLen
+# HELP dsc_exporter_priming_responses_ReplyLen EXPERIMENTAL: DSC-Metric from dataset priming_responses for ReplyLen
 # TYPE dsc_exporter_priming_responses_ReplyLen histogram
 dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="0"} 10
 dsc_exporter_priming_responses_ReplyLen_bucket{loc="loc",ns="ns",le="50"} 10
