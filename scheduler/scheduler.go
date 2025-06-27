@@ -42,15 +42,18 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 			for _, dscFile := range dscFiles {
 				if !dscFile.IsDir() && strings.HasSuffix(dscFile.Name(), ".dscdata.xml") {
 
+					exportStart := time.Now()
+
 					dscFilePath := filepath.Join(nsFolderPath, dscFile.Name())
 					dscData := dscparser.ReadFile(dscFilePath, locationFolder.Name(), nsFolder.Name())
 
-					now := time.Now()
 					stopTimeRaw := dscData.Datasets[0].StopTime
 					stopTime := time.Unix(int64(stopTimeRaw), 0)
-					log.Printf("Exporting %s - %d (Stop time: %s) - Delay: %s", dscData.NameServer, stopTimeRaw, stopTime, now.Sub(stopTime))
+					log.Printf("Exporting %s - %d (Stop time: %s) - Delay: %s", dscData.NameServer, stopTimeRaw, stopTime, time.Since(stopTime))
 
 					exporter.ExportDSCData(dscData)
+
+					log.Printf("Parsing and export took %v", time.Since(exportStart))
 
 					if config.RemoveReadFiles {
 						err := os.Remove(dscFilePath)
