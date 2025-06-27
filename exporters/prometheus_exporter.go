@@ -17,6 +17,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const NAMESERVER_LABEL = "ns"
+const LOCATION_LABEL = "loc"
+
 type PrometheusExporter struct {
 	Metrics      map[string]interface{}
 	FilesCounter *prometheus.CounterVec
@@ -31,7 +34,7 @@ func NewPrometheusExporter(config config.Config) *PrometheusExporter {
 			Name: "dsc_exporter_parsed_files",
 			Help: "How many files the dsc exporter parsed for each ns",
 		},
-		[]string{"loc", "ns"},
+		[]string{LOCATION_LABEL, NAMESERVER_LABEL},
 	)
 	registry.MustRegister(filesCounter)
 	return &PrometheusExporter{Metrics: make(map[string]interface{}), Registry: registry, Config: config, FilesCounter: filesCounter}
@@ -64,8 +67,7 @@ func (pe *PrometheusExporter) addCounter(metricName string, metricHelp string, l
 
 func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, metricConfig config.MetricConfig) {
 
-	//First label is always loc, secend ist ns
-	var labels []string = []string{"loc", "ns"}
+	var labels []string = []string{LOCATION_LABEL, NAMESERVER_LABEL}
 	var buckets []float64
 
 	label1 := dataset.DimensionInfo[0].Type
@@ -96,7 +98,7 @@ func (pe *PrometheusExporter) createMissingBucket(dataset dscparser.Dataset, met
 }
 
 func (pe *PrometheusExporter) createMissingCounter(dataset dscparser.Dataset) {
-	var labels []string = []string{"loc", "ns"}
+	var labels []string = []string{LOCATION_LABEL, NAMESERVER_LABEL}
 	for _, dimensionInfo := range dataset.DimensionInfo {
 		label := dimensionInfo.Type
 		if label != "All" {
@@ -137,13 +139,13 @@ func checkError(err error) {
 	}
 }
 
-func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricConfig config.MetricConfig, metric *prometheusextension.WeightedHistogramVec, label2 string, labelValues []string, value string, count int) {
+func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricConfig config.MetricConfig, metric *prometheusextension.WeightedHistogramVec, label2 string, labels prometheus.Labels, value string, count int) {
 
 	_, bucketParams := metricConfig.IsBucket(label2)
 	if value == "None" && bucketParams.NoneCounter {
 		// Increment counter for none values
 		noneCounter := pe.Metrics[fmt.Sprintf("%v_%v", dataset.Name, "None")].(*prometheus.CounterVec)
-		noneCounter.WithLabelValues(labelValues...).Add(float64(count))
+		noneCounter.With(labels).Add(float64(count))
 		return
 	}
 	bucket := float64(0)
@@ -161,8 +163,7 @@ func (pe *PrometheusExporter) updateBucket(dataset *dscparser.Dataset, metricCon
 		checkError(err)
 		bucket = float64(cellValue)
 	}
-
-	metric.WithLabelValues(labelValues...).ObserveWithWeight(bucket, uint64(count))
+	metric.With(labels).ObserveWithWeight(bucket, uint64(count))
 }
 
 func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location string, nameserver string) {
@@ -175,21 +176,22 @@ func (pe *PrometheusExporter) ExportDataset(dataset *dscparser.Dataset, location
 	for _, row := range dataset.Data.Rows {
 		for _, cell := range row.Cells {
 
-			//First label is always nameserver
-			var labelValues []string = []string{location, nameserver}
+			labels := prometheus.Labels{}
+			labels[LOCATION_LABEL] = location
+			labels[NAMESERVER_LABEL] = nameserver
 
 			if label1 != "All" {
-				labelValues = append(labelValues, row.Value)
+				labels[label1] = row.Value
 			}
 			if isBucket, _ := metricConfig.IsBucket(label2); label2 != "All" && !isBucket {
-				labelValues = append(labelValues, cell.Value)
+				labels[label2] = cell.Value
 			}
 
 			switch metricCasted := metric.(type) {
 			case *prometheusextension.WeightedHistogramVec:
-				pe.updateBucket(dataset, metricConfig, metricCasted, label2, labelValues, cell.Value, cell.Count)
+				pe.updateBucket(dataset, metricConfig, metricCasted, label2, labels, cell.Value, cell.Count)
 			case *prometheus.CounterVec:
-				metricCasted.WithLabelValues(labelValues...).Add(float64(cell.Count))
+				metricCasted.With(labels).Add(float64(cell.Count))
 			default:
 				fmt.Printf("Unkown metric type %T\n", metricCasted)
 			}
@@ -208,7 +210,7 @@ func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
 		}
 		pe.ExportDataset(&dataset, dscData.Location, dscData.NameServer)
 	}
-	pe.FilesCounter.WithLabelValues(dscData.Location, dscData.NameServer).Inc()
+	pe.FilesCounter.With(prometheus.Labels{LOCATION_LABEL: dscData.Location, NAMESERVER_LABEL: dscData.NameServer}).Inc()
 }
 
 func (pe *PrometheusExporter) StartPrometheusExporter() {
