@@ -18,11 +18,10 @@ import (
 )
 
 type PrometheusExporter struct {
-	Metrics           map[string]interface{}
-	FilesCounter      *prometheus.CounterVec
-	Registry          *prometheus.Registry
-	Config            config.Config
-	WeightedHistogram prometheusextension.WeightedHistogramVec
+	Metrics      map[string]interface{}
+	FilesCounter *prometheus.CounterVec
+	Registry     *prometheus.Registry
+	Config       config.Config
 }
 
 func NewPrometheusExporter(config config.Config) *PrometheusExporter {
