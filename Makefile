@@ -2,7 +2,7 @@ APPNAME := dscexporter
 APPSRC := ./cmd/$(APPNAME)
 
 PKG := github.com/DENICeG/dscexporter
-TEST_PKG_LIST := config dscparser exporters scheduler
+TEST_PKG_LIST := config dscparser exporters scheduler aggregation
 
 GITCOMMITHASH := $(shell git log --max-count=1 --pretty="format:%h" HEAD)
 GITCOMMIT := -X main.gitcommit=$(GITCOMMITHASH)
@@ -41,5 +41,6 @@ build-linux: info dep
 
 unittests:
 	CGO_ENABLED=0 go test -v -count=1 -cover -coverprofile cover.out -p 1 $(addprefix $(PKG)/, $(TEST_PKG_LIST))
+	go tool cover -html=cover.out -o cover.html
 
 test: unittests
