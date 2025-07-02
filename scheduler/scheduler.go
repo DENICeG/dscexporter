@@ -78,8 +78,8 @@ func Run(config config.Config, exporter *exporters.PrometheusExporter, function 
 
 		endTime := time.Now()
 		sleepDuration := max(config.Interval-endTime.Sub(startTime), 0)
-
-		log.Printf("Parsing took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
+		log.Printf("-----------------------------------------------------")
+		log.Printf("Parsing folder took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
 		time.Sleep(sleepDuration)
 	}
 }
