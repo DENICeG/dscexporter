@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	app = kingpin.New("dsc-exporter", "A command-line to export DSC files.")
+	app = kingpin.New("dsc-exporter", "A command-line tool to export DSC files.")
 	//app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
 	configPath = app.Flag("config", "Path to the config file").Short('c').Envar("DSC_EXPORTER_CONFIG").Required().ExistingFile()
 	data       = app.Flag("data", "Path to the data dir").Short('d').Envar("DSC_EXPORTER_DATADIR").ExistingDir()
