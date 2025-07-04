@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/dscexporter -c /etc/dscexporter/config.yaml
+ExecStart=/usr/local/bin/dscexporter -c /etc/dscexporter/config.yaml
 TimeoutSec=60
 Restart=on-failure
 RestartSec=5

@@ -49,11 +49,10 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 
 					stopTimeRaw := dscData.Datasets[0].StopTime
 					stopTime := time.Unix(int64(stopTimeRaw), 0)
-					log.Printf("Exporting %s - %d (Stop time: %s) - Delay: %s", dscData.NameServer, stopTimeRaw, stopTime, time.Since(stopTime))
 
 					exporter.ExportDSCData(dscData)
 
-					log.Printf("Parsing and export took %v", time.Since(exportStart))
+					log.Printf("Exported %s - %d (Stop time: %s) - Delay: %s - Took: %v", dscData.NameServer, stopTimeRaw, stopTime, time.Since(stopTime), time.Since(exportStart))
 
 					if config.RemoveReadFiles {
 						err := os.Remove(dscFilePath)
@@ -78,8 +77,9 @@ func Run(config config.Config, exporter *exporters.PrometheusExporter, function 
 
 		endTime := time.Now()
 		sleepDuration := max(config.Interval-endTime.Sub(startTime), 0)
-		log.Printf("-----------------------------------------------------")
-		log.Printf("Parsing folder took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
+
+		log.Printf("Parsing data folder took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
+		log.Printf("------------------------------------------------------------------")
 		time.Sleep(sleepDuration)
 	}
 }
