@@ -36,6 +36,7 @@ build-linux: info dep
 	@mkdir -p build/linux
 	@CGO_ENABLED=0 \
 	GOOS=linux \
+	GOARCH=amd64 \
 	go build -o build/linux/$(APPNAME)-$(VERSIONTAG)-$(GITCOMMITHASH) -a -ldflags $(LDFLAGS) $(APPSRC)
 	@cp build/linux/$(APPNAME)-$(VERSIONTAG)-$(GITCOMMITHASH) build/linux/$(APPNAME)
 
