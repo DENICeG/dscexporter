@@ -27,7 +27,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: go-test-converage
-        path: cover.out
+        path: |
+          cover.out
+          cover.html
       
   build: 
     needs: test
