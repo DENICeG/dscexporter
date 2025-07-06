@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"slices"
+	"strings"
 
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/exporters"
@@ -22,36 +23,52 @@ var (
 	remove     = app.Flag("remove", "Remove read files").Bool()
 )
 
-func hasFlagSetShort(flag string, short rune) bool {
-	return slices.Contains(os.Args, "--"+flag) || slices.Contains(os.Args, "-"+string(short))
+func argsContain(args []string, substring string) bool {
+	for _, arg := range args {
+		if strings.Contains(arg, substring) {
+			return true
+		}
+	}
+	return false
 }
 
-func hasFlagSet(flag string) bool {
-	return slices.Contains(os.Args, "--"+flag)
+func hasFlagSetShort(args []string, flag string, short string) bool {
+	return argsContain(args, "--"+flag) || argsContain(args, "-"+short)
+}
+
+func hasFlagSet(args []string, flag string) bool {
+	return argsContain(args, "--"+flag)
+}
+
+func ParamsToConfig(args []string) config.Config {
+	kingpin.MustParse(app.Parse(args))
+
+	log.Printf("Parsing config %s", *configPath)
+	conf := config.ParseConfig(*configPath)
+
+	if hasFlagSetShort(args, "interval", "i") {
+		conf.Interval = *interval
+	}
+	if hasFlagSetShort(args, "data", "d") {
+		conf.DataDir = *data
+	}
+	if hasFlagSetShort(args, "port", "p") {
+		conf.Prometheus.Port = *port
+	}
+	if hasFlagSet(args, "remove") || hasFlagSet(args, "no-remove") {
+		conf.RemoveReadFiles = *remove
+	}
+
+	return conf
 }
 
 func main() {
-	kingpin.MustParse(app.Parse(os.Args[1:]))
+	conf := ParamsToConfig(os.Args[1:])
+	fmt.Print(conf.DataDir)
 
-	log.Printf("Parsing config %s", *configPath)
-	config := config.ParseConfig(*configPath)
+	prometheusExporter := exporters.NewPrometheusExporter(conf)
 
-	if hasFlagSetShort("interval", 'i') {
-		config.Interval = *interval
-	}
-	if hasFlagSetShort("data", 'd') {
-		config.DataDir = *data
-	}
-	if hasFlagSetShort("port", 'p') {
-		config.Prometheus.Port = *port
-	}
-	if hasFlagSet("remove") || hasFlagSet("no-remove") {
-		config.RemoveReadFiles = *remove
-	}
-
-	prometheusExporter := exporters.NewPrometheusExporter(config)
-
-	go scheduler.Run(config, prometheusExporter, scheduler.ReadAndExportDir)
+	go scheduler.Run(conf, prometheusExporter, scheduler.ReadAndExportDir)
 
 	prometheusExporter.StartPrometheusExporter()
 }

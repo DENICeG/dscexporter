@@ -2,7 +2,7 @@ APPNAME := dscexporter
 APPSRC := ./cmd/$(APPNAME)
 
 PKG := github.com/DENICeG/dscexporter
-TEST_PKG_LIST := config dscparser exporters scheduler aggregation
+TEST_PKG_LIST := cmd/dscexporter config dscparser exporters scheduler aggregation 
 
 GITCOMMITHASH := $(shell git log --max-count=1 --pretty="format:%h" HEAD)
 GITCOMMIT := -X main.gitcommit=$(GITCOMMITHASH)

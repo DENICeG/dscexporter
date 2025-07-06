@@ -70,6 +70,7 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 func Run(config config.Config, exporter *exporters.PrometheusExporter, function func(config.Config, *exporters.PrometheusExporter)) {
 
 	log.Printf("Started parsing dsc files in folder: %s", config.DataDir)
+	log.Printf("------------------------------------------------------------------")
 	for i := 0; true; i++ {
 		startTime := time.Now()
 

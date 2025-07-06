@@ -1,5 +1,5 @@
 prometheus:
-  port: 2113
+  port: 2113 # Should be different from default
   metrics: 
     pcap_stats: 
       aggregations: 
@@ -30,5 +30,6 @@ prometheus:
             use_midpoint: true
     qr_aa_bits: {}
 
-interval: 20s
-remove: true
+interval: 20s # Should be different from default
+remove: true # Should be different from default
+# no datadir, to see if default works

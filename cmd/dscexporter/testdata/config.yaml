@@ -1,0 +1,6 @@
+prometheus:
+  port: 2113
+  metrics: {}
+
+interval: 20s
+remove: true
