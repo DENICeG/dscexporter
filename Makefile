@@ -29,7 +29,7 @@ dep:
 	@go get -v -d ./...
 
 install: build-linux
-	cp build/linux/$(APPNAME) $(shell go env GOPATH)/bin/
+	cp build/linux/$(APPNAME) /usr/local/bin
 	
 build-linux: info dep
 	@echo Building for linux
@@ -42,6 +42,7 @@ build-linux: info dep
 
 unittests:
 	CGO_ENABLED=0 go test -v -count=1 -cover -coverprofile cover.out -p 1 $(addprefix $(PKG)/, $(TEST_PKG_LIST))
+	go tool cover -func=cover.out
 	go tool cover -html=cover.out -o cover.html
 
 test: unittests

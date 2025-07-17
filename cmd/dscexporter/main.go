@@ -14,6 +14,12 @@ import (
 )
 
 var (
+	gitcommit  string
+	appversion string
+	buildtime  string
+)
+
+var (
 	app = kingpin.New("dsc-exporter", "A command-line tool to export DSC files.")
 	//app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
 	configPath = app.Flag("config", "Path to the config file").Short('c').Envar("DSC_EXPORTER_CONFIG").Required().ExistingFile()
@@ -63,6 +69,8 @@ func ParamsToConfig(args []string) config.Config {
 }
 
 func main() {
+	app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
+
 	conf := ParamsToConfig(os.Args[1:])
 	fmt.Print(conf.DataDir)
 
