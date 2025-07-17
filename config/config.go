@@ -9,7 +9,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-const DefaultInterval = 15 * time.Second
+const DefaultInterval = 5 * time.Second
 const DefaultDataDir = "/data/exporter_dsc"
 const DefaultRemoveReadFiles = false
 const DefaultPrometheusPort = 2112
