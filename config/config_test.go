@@ -100,7 +100,7 @@ func TestConfig(t *testing.T) {
 							Params: map[string]interface{}{
 								"A":    map[string]interface{}{},
 								"AAAA": map[string]interface{}{},
-								"NS":   map[string]interface{}{},
+								"NS":   nil,
 							},
 						},
 					},

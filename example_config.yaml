@@ -1,6 +1,6 @@
 prometheus:
   metrics: 
-    edns_bufsiz:  #  For Query Attributes -> EDNS Bufsiz
+    edns_bufsiz: 
       aggregations: 
         EDNSBufSiz:
           type: Bucket
@@ -10,37 +10,37 @@ prometheus:
             count: 9
             none_counter: true
             use_midpoint: true
-    edns_version: #  For Query Attributes -> EDNS Version
+    edns_version:
       aggregations: 
         EDNSVersion:
           type: Filter
           params: 
             "0": {}
             "none": {}
-    idn_qname: {}  # For Query Attributes -> idn Qnames plot
-    rd_bit: {} # For Query Attributes -> RD bit plot
-    do_bit: {} # For Query Attributes -> DO bit plot
-    rcode: {} # For rcodesrcode plot
-    qtype: {} # For qtypes plot
-    client_port_range: # Für Source Ports plot
+    idn_qname: {} 
+    rd_bit: {} 
+    do_bit: {} 
+    rcode: {}
+    qtype: {} 
+    client_port_range: 
       aggregations: 
         PortRange:
           type: Bucket
           params: 
             start: 1023
             width: 1024
-            count: 64 # TODO: Überprüfen, zu viel??
+            count: 64 
             none_counter: true
             use_midpoint: true 
-    qtype_vs_qnamelen: # Für Qname Length plot
+    qtype_vs_qnamelen: 
       aggregations: 
         QnameLen:
           type: Bucket
           params: 
-            start: 3 # TODO: -1 Starten??
+            start: 3 
             width: 4
             count: 16
-    rcode_vs_replylen: # Für Reply Lengths plot
+    rcode_vs_replylen:
       aggregations: 
         ReplyLen:
           type: Bucket
@@ -48,10 +48,10 @@ prometheus:
             start: 31
             width: 32
             count: 40
-    dns_ip_version_vs_qtype: {} # Für IP Version and qtype plot 
-    direction_vs_ipproto: {} # Für IP protocol plot
-    transport_vs_qtype: {}  # Für DNS Transport plot
-    opcode: {} # For opcodes plot
+    dns_ip_version_vs_qtype: {}
+    direction_vs_ipproto: {} 
+    transport_vs_qtype: {} 
+    opcode: {}
     qtype_vs_tld: 
       aggregations: 
         TLD: 
@@ -59,15 +59,15 @@ prometheus:
           params: 
             "de": {}
             "localhost": {}
-    qr_aa_bits: {} #  For Query Attributes -> QR and AA Plot
-    chaos_types_and_names:  # Für CHAOS plot 
+    qr_aa_bits: {} 
+    chaos_types_and_names:  
       aggregations: 
         Qname: 
           type: Filter
           params: 
             "hostname.bind": {}
             "version.bind": {}
-    priming_responses: # Für Priming Responses plot
+    priming_responses:
       aggregations: 
         ReplyLen:
           type: Bucket
@@ -75,7 +75,7 @@ prometheus:
             start: 31
             width: 32
             count: 40
-    priming_queries: # Für Priming Queries plot
+    priming_queries:
       aggregations: 
         EDNSBufSiz:
           type: Bucket
@@ -85,7 +85,7 @@ prometheus:
             count: 9
             none_counter: true
             use_midpoint: true
-    pcap_stats: {} # New plot?
+    pcap_stats: {} 
 
     # Not exported:
     # servfail_qname

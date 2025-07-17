@@ -12,7 +12,7 @@ prometheus:
           params:
             "A": {}
             "AAAA": {}
-            "NS": {}
+            "NS":
     second_ld_vs_rcode:
       aggregations: 
         SecondLD:
