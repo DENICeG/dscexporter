@@ -13,7 +13,7 @@ VERSION := -X main.appversion=$(VERSIONTAG)
 BUILDTIMEVALUE := $(shell date +%Y-%m-%dT%H:%M:%S%z)
 BUILDTIME := -X main.buildtime=$(BUILDTIMEVALUE)
 
-LDFLAGS := '-extldflags "-static" -d -s -w $(GITCOMMIT) $(VERSION) $(BUILDTIME)'
+LDFLAGS := '-extldflags "-static" -s -w $(GITCOMMIT) $(VERSION) $(BUILDTIME)'
 LDFLAGS_WINDOWS := '-extldflags "-static" -s -w $(GITCOMMIT) $(VERSION) $(BUILDTIME)'
 
 clean:
