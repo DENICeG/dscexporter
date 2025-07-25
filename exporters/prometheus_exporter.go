@@ -218,7 +218,7 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 	//Disabled default go_collector exports for debuging and a better overview
 	//ToDO: Enable later? Fix tests then...
 
-	slog.Info("Starting prometheus exporter", "url", fmt.Sprintf("http://localhost:%d", pe.Config.Prometheus.Port))
+	slog.Info("Starting prometheus exporter", "url", fmt.Sprintf("http://localhost:%d/metrics", pe.Config.Prometheus.Port))
 
 	handler := promhttp.HandlerFor(pe.Registry, promhttp.HandlerOpts{})
 
