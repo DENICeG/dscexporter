@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,7 +52,14 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 
 					exporter.ExportDSCData(dscData)
 
-					log.Printf("Exported %s - %d (Stop time: %s) - Delay: %s - Took: %v", dscData.NameServer, stopTimeRaw, stopTime, time.Since(stopTime), time.Since(exportStart))
+					slog.Info("Exported file",
+						slog.String("nameserver", dscData.NameServer),
+						slog.Int("stop_timestamp", stopTimeRaw),
+						slog.String("stop_time", stopTime.String()),
+						slog.String("delay", time.Since(stopTime).String()),
+						slog.String("took", time.Since(exportStart).String()),
+					)
+					//perfFile.WriteString(fmt.Sprintf("%v\n", time.Since(exportStart)))
 
 					if config.RemoveReadFiles {
 						err := os.Remove(dscFilePath)
@@ -62,15 +69,19 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 			}
 
 		}
-
 	}
+	//perfFile.Sync()
 
 }
 
 func Run(config config.Config, exporter *exporters.PrometheusExporter, function func(config.Config, *exporters.PrometheusExporter)) {
 
-	log.Printf("Started parsing dsc files in folder: %s", config.DataDir)
-	log.Printf("------------------------------------------------------------------")
+	//f, _ := os.Create("perf.txt")
+	//defer f.Sync()
+	//defer f.Close()
+
+	slog.Info("Started parsing dsc files", "path", config.DataDir)
+	slog.Info("------------------------------------------------------------------")
 	for i := 0; true; i++ {
 		startTime := time.Now()
 
@@ -79,8 +90,8 @@ func Run(config config.Config, exporter *exporters.PrometheusExporter, function 
 		endTime := time.Now()
 		sleepDuration := max(config.Interval-endTime.Sub(startTime), 0)
 
-		log.Printf("Parsing data folder took: %v, sleeping for: %v", endTime.Sub(startTime), sleepDuration)
-		log.Printf("------------------------------------------------------------------")
+		slog.Info("Done parsing data folder", "took", endTime.Sub(startTime), "sleeping_for", sleepDuration)
+		slog.Info("------------------------------------------------------------------")
 		time.Sleep(sleepDuration)
 	}
 }

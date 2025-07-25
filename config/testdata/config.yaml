@@ -33,3 +33,4 @@ prometheus:
 interval: 20s # Should be different from default
 remove: true # Should be different from default
 # no datadir, to see if default works
+loglevel: warn

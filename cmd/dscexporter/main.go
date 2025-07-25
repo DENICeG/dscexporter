@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -24,6 +24,7 @@ var (
 	//app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
 	configPath = app.Flag("config", "Path to the config file").Short('c').Envar("DSC_EXPORTER_CONFIG").Required().ExistingFile()
 	data       = app.Flag("data", "Path to the data dir").Short('d').Envar("DSC_EXPORTER_DATADIR").ExistingDir()
+	logLevel   = app.Flag("log-level", "The log level (\"debug\", \"info\", \"warn\", \"error\")").Short('l').Envar("DSC_EXPORTER_LOG_LEVEL").Enum("debug", "info", "warn", "error")
 	interval   = app.Flag("interval", "The interval the exporter looks for new files").Short('i').Envar("DSC_EXPORTER_INTERVAL").Duration()
 	port       = app.Flag("port", "The port under the prometheus metrics are served").Short('p').Envar("DSC_EXPORTER_PORT").Int()
 	remove     = app.Flag("remove", "Remove read files").Bool()
@@ -48,8 +49,6 @@ func hasFlagSet(args []string, flag string) bool {
 
 func ParamsToConfig(args []string) config.Config {
 	kingpin.MustParse(app.Parse(args))
-
-	log.Printf("Parsing config %s", *configPath)
 	conf := config.ParseConfig(*configPath)
 
 	if hasFlagSetShort(args, "interval", "i") {
@@ -60,6 +59,9 @@ func ParamsToConfig(args []string) config.Config {
 	}
 	if hasFlagSetShort(args, "port", "p") {
 		conf.Prometheus.Port = *port
+	}
+	if hasFlagSetShort(args, "log-level", "l") {
+		conf.LogLevel = config.GetLogLevel(*logLevel)
 	}
 	if hasFlagSet(args, "remove") || hasFlagSet(args, "no-remove") {
 		conf.RemoveReadFiles = *remove
@@ -72,10 +74,16 @@ func main() {
 	app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
 
 	conf := ParamsToConfig(os.Args[1:])
-	fmt.Print(conf.DataDir)
+
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: conf.LogLevel,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	slog.Info("Parsed config", "path", *configPath)
 
 	prometheusExporter := exporters.NewPrometheusExporter(conf)
-
 	go scheduler.Run(conf, prometheusExporter, scheduler.ReadAndExportDir)
 
 	prometheusExporter.StartPrometheusExporter()

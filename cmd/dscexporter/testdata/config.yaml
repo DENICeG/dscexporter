@@ -4,3 +4,4 @@ prometheus:
 
 interval: 20s
 remove: true
+loglevel: debug

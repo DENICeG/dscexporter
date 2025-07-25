@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -13,12 +14,14 @@ const DefaultInterval = 5 * time.Second
 const DefaultDataDir = "/data/exporter_dsc"
 const DefaultRemoveReadFiles = false
 const DefaultPrometheusPort = 2112
+const DefaultLogLevel = slog.LevelInfo
 
 type Config struct {
 	RemoveReadFiles bool             `yaml:"remove"`
 	DataDir         string           `yaml:"data"`
 	Interval        time.Duration    `yaml:"interval"`
 	Prometheus      PrometheusConfig `yaml:"prometheus"`
+	LogLevel        slog.Level       `yaml:"loglevel"`
 	//Database DatabaseConfig `yaml:"database"`
 }
 
@@ -58,6 +61,21 @@ func toBool(i interface{}) bool {
 		return false
 	default:
 		panic(fmt.Sprintf("Cant convert %v of type %T to bool", v, v))
+	}
+}
+
+func GetLogLevel(logLevelString string) slog.Level {
+	switch logLevelString {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
 	}
 }
 
@@ -135,6 +153,7 @@ func ParseConfigText(content []byte) Config {
 	config.RemoveReadFiles = DefaultRemoveReadFiles
 	config.Interval = DefaultInterval
 	config.DataDir = DefaultDataDir
+	config.LogLevel = DefaultLogLevel
 	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort}
 
 	err := yaml.Unmarshal(content, &config)

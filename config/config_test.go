@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log/slog"
 	"reflect"
 	"slices"
 	"testing"
@@ -14,7 +15,7 @@ func TestIsBucket(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["priming_responses"]
 	isBucket, params := metricConfig.IsBucket("ReplyLen")
 	assert.True(t, isBucket)
-	assert.Equal(t, params, BucketParams{Start: -1, Width: 50, Count: 0, NoneCounter: true, UseMidpoint: true})
+	assert.Equal(t, BucketParams{Start: -1, Width: 50, Count: 0, NoneCounter: true, UseMidpoint: true}, params)
 }
 
 func TestIsEliminateDimension(t *testing.T) {
@@ -29,7 +30,7 @@ func TestIsMaxCells(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["second_ld_vs_rcode"]
 	isMaxCells, params := metricConfig.IsMaxCells("SecondLD")
 	assert.True(t, isMaxCells)
-	assert.Equal(t, params, MaxCellsParams{X: 5})
+	assert.Equal(t, MaxCellsParams{X: 5}, params)
 }
 
 func TestIsFilter(t *testing.T) {
@@ -38,7 +39,7 @@ func TestIsFilter(t *testing.T) {
 	isFilter, allowedValues := metricConfig.IsFilter("Qtype")
 	assert.True(t, isFilter)
 	slices.Sort(allowedValues)
-	assert.Equal(t, allowedValues, []string{"A", "AAAA", "NS"})
+	assert.Equal(t, []string{"A", "AAAA", "NS"}, allowedValues)
 }
 
 func TestIsFilterButItsNot(t *testing.T) {
@@ -46,7 +47,15 @@ func TestIsFilterButItsNot(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["second_ld_vs_rcode"]
 	isFilter, allowedValues := metricConfig.IsFilter("SecondLD")
 	assert.False(t, isFilter)
-	assert.Equal(t, allowedValues, []string{})
+	assert.Equal(t, []string{}, allowedValues)
+}
+
+func TestGetLogLevel(t *testing.T) {
+	assert.Equal(t, slog.LevelDebug, GetLogLevel("debug"))
+	assert.Equal(t, slog.LevelInfo, GetLogLevel("info"))
+	assert.Equal(t, slog.LevelWarn, GetLogLevel("warn"))
+	assert.Equal(t, slog.LevelError, GetLogLevel("error"))
+	assert.Equal(t, slog.LevelInfo, GetLogLevel("gibtsnet"))
 }
 
 func TestConfig(t *testing.T) {
@@ -57,6 +66,7 @@ func TestConfig(t *testing.T) {
 		RemoveReadFiles: true,
 		DataDir:         DefaultDataDir,
 		Interval:        20 * time.Second,
+		LogLevel:        slog.LevelWarn,
 		Prometheus: PrometheusConfig{
 			Port: 2113,
 			Metrics: map[string]MetricConfig{
