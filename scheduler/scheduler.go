@@ -54,7 +54,7 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 
 					slog.Info("Exported file",
 						slog.String("nameserver", dscData.NameServer),
-						slog.Int("stop_timestamp", stopTimeRaw),
+						slog.Int64("stop_timestamp", stopTimeRaw),
 						slog.String("stop_time", stopTime.String()),
 						slog.String("delay", time.Since(stopTime).String()),
 						slog.String("took", time.Since(exportStart).String()),

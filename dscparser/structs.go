@@ -44,8 +44,8 @@ func (d DSCData) Equals(d2 DSCData) bool {
 type Dataset struct {
 	XMLName       xml.Name        `xml:"array"`
 	Name          string          `xml:"name,attr"`
-	StartTime     int             `xml:"start_time,attr"`
-	StopTime      int             `xml:"stop_time,attr"`
+	StartTime     int64           `xml:"start_time,attr"`
+	StopTime      int64           `xml:"stop_time,attr"`
 	Dimensions    int             `xml:"dimensions,attr"`
 	DimensionInfo []DimensionInfo `xml:"dimension"`
 	Data          Data            `xml:"data"`
