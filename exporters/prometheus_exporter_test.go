@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/DENICeG/dscexporter/config"
@@ -29,6 +31,12 @@ func getMetrics(t *testing.T, config config.Config) string {
 	return string(body)
 }
 
+func sortMetrics(metrics string) string {
+	lines := strings.Split(metrics, "\n")
+	slices.SortFunc(lines, strings.Compare)
+	return strings.Join(lines, "\n")
+}
+
 func TestPrometheusExporter(t *testing.T) {
 
 	config := config.ParseConfig("./testdata/config.yaml")
@@ -44,7 +52,7 @@ func TestPrometheusExporter(t *testing.T) {
 	metrics := getMetrics(t, config)
 	expected_metrics, err := os.ReadFile("./testdata/expected_metrics.txt")
 	assert.NoError(t, err)
-	assert.Equal(t, string(expected_metrics), metrics)
+	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
 
 	//Export another dsc file and check if its correctly exported too
 	dscData2 := dscparser.ReadFile("./testdata/test_dsc_file2.xml", "loc", "ns")
@@ -53,7 +61,7 @@ func TestPrometheusExporter(t *testing.T) {
 	metrics = getMetrics(t, config)
 	expected_metrics, err = os.ReadFile("./testdata/expected_metrics2.txt")
 	assert.NoError(t, err)
-	assert.Equal(t, string(expected_metrics), metrics)
+	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
 }
 
 func TestNewPrometheusExporter(t *testing.T) {

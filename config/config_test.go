@@ -68,7 +68,9 @@ func TestConfig(t *testing.T) {
 		Interval:        20 * time.Second,
 		LogLevel:        slog.LevelWarn,
 		Prometheus: PrometheusConfig{
-			Port: 2113,
+			Port:       2113,
+			Timestamps: true,
+			WindowSize: 8,
 			Metrics: map[string]MetricConfig{
 				"pcap_stats": MetricConfig{
 					Aggregations: map[string]Aggregation{

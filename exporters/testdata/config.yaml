@@ -27,3 +27,4 @@ prometheus:
             count: 6
             none_counter: true
             use_midpoint: true
+  timestamps: false

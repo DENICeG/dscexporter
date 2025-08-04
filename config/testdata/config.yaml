@@ -1,5 +1,7 @@
 prometheus:
   port: 2113 # Should be different from default
+  timestamps: true
+  windowsize: 8
   metrics: 
     pcap_stats: 
       aggregations: 

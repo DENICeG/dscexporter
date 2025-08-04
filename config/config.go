@@ -15,6 +15,8 @@ const DefaultDataDir = "/data/exporter_dsc"
 const DefaultRemoveReadFiles = false
 const DefaultPrometheusPort = 2112
 const DefaultLogLevel = slog.LevelInfo
+const DefaultTimestamps = true
+const DefaultWindowSize = 5
 
 type Config struct {
 	RemoveReadFiles bool             `yaml:"remove"`
@@ -26,8 +28,10 @@ type Config struct {
 }
 
 type PrometheusConfig struct {
-	Metrics map[string]MetricConfig `yaml:"metrics"`
-	Port    int                     `yaml:"port"`
+	Metrics    map[string]MetricConfig `yaml:"metrics"`
+	Port       int                     `yaml:"port"`
+	Timestamps bool                    `yaml:"timestamps"`
+	WindowSize int                     `yaml:"windowsize"`
 }
 
 // type DatabaseConfig struct {
@@ -154,7 +158,7 @@ func ParseConfigText(content []byte) Config {
 	config.Interval = DefaultInterval
 	config.DataDir = DefaultDataDir
 	config.LogLevel = DefaultLogLevel
-	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort}
+	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort, Timestamps: DefaultTimestamps, WindowSize: DefaultWindowSize}
 
 	err := yaml.Unmarshal(content, &config)
 	checkError(err)

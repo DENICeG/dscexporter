@@ -2,9 +2,11 @@ package scheduler
 
 import (
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -38,6 +40,11 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 
 			nsFolderPath := filepath.Join(locationFolderPath, nsFolder.Name())
 			dscFiles, _ := os.ReadDir(nsFolderPath)
+
+			//Sort dscfiles from oldest -> newest
+			slices.SortFunc(dscFiles, func(a, b fs.DirEntry) int {
+				return strings.Compare(a.Name(), b.Name())
+			})
 
 			for _, dscFile := range dscFiles {
 				if !dscFile.IsDir() && strings.HasSuffix(dscFile.Name(), ".dscdata.xml") {
