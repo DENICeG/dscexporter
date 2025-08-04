@@ -4,3 +4,4 @@ cover.out
 __debug_*
 cover.html
 only_qtypes.yaml
+.vscode
