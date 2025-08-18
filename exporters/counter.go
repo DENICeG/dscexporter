@@ -38,21 +38,27 @@ func (h *CounterValueHistory) Add(increase float64, timestamp time.Time) {
 }
 
 type CounterVec struct {
-	Values map[MetricIdentifier]CounterValueHistory
+	Values map[LabelValues]CounterValueHistory
 	Desc   *prometheus.Desc
+}
+
+func CreateCounterVec(desc *prometheus.Desc) *CounterVec {
+	return &CounterVec{
+		Values: make(map[LabelValues]CounterValueHistory),
+		Desc:   desc,
+	}
 }
 
 func (c *CounterVec) Describe(ch chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(c, ch)
 }
 
-func (c *CounterVec) CollectValue(ch chan<- prometheus.Metric, metricIdentifier MetricIdentifier, timestampedValue TimestampedValue) {
-	labelValues := metricIdentifier.LabelValues()
+func (c *CounterVec) CollectValue(ch chan<- prometheus.Metric, labelValues LabelValues, timestampedValue TimestampedValue) {
 	metric := prometheus.MustNewConstMetric(
 		c.Desc,
 		prometheus.CounterValue,
 		timestampedValue.Value,
-		labelValues...,
+		labelValues.LabelValues()...,
 	)
 	if Config.Prometheus.Timestamps {
 		metricWithTimesamp := prometheus.NewMetricWithTimestamp(timestampedValue.Timestamp, metric)
@@ -64,20 +70,26 @@ func (c *CounterVec) CollectValue(ch chan<- prometheus.Metric, metricIdentifier 
 
 func (c *CounterVec) Collect(ch chan<- prometheus.Metric) {
 
-	for metricIdentifier, valueHistory := range c.Values {
+	for labelValues, valueHistory := range c.Values {
 		if Config.Prometheus.Timestamps {
 			for _, timestampedValue := range valueHistory.Values {
-				c.CollectValue(ch, metricIdentifier, timestampedValue)
+				c.CollectValue(ch, labelValues, timestampedValue)
 			}
 		} else {
 			if !valueHistory.IsEmpty() && Config.Prometheus.IsInTimeWindow(valueHistory.Values[0].Timestamp) {
-				c.CollectValue(ch, metricIdentifier, valueHistory.Values[0])
+				c.CollectValue(ch, labelValues, valueHistory.Values[0])
 			}
 		}
 	}
 }
 
-func (c *CounterVec) WithLabelValues(metricIdentifier MetricIdentifier) (CounterValueHistory, bool) {
-	history, ok := c.Values[metricIdentifier]
-	return history, ok
+func (c *CounterVec) WithLabelValues(labelValues LabelValues) CounterValueHistory {
+	history, ok := c.Values[labelValues]
+	if !ok {
+		history = CounterValueHistory{
+			Values: make([]TimestampedValue, 0),
+		}
+		c.Values[labelValues] = history
+	}
+	return history
 }

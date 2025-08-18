@@ -62,22 +62,28 @@ func (h *HistogramValuesHistory) Add(bucketsIncrease map[float64]uint64, countIn
 }
 
 type HistogramVec struct {
-	Values map[MetricIdentifier]HistogramValuesHistory
+	Values map[LabelValues]HistogramValuesHistory
 	Desc   *prometheus.Desc
+}
+
+func CreateHistogramVec(desc *prometheus.Desc) *HistogramVec {
+	return &HistogramVec{
+		Values: make(map[LabelValues]HistogramValuesHistory),
+		Desc:   desc,
+	}
 }
 
 func (h *HistogramVec) Describe(ch chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(h, ch)
 }
 
-func (h *HistogramVec) CollectValue(ch chan<- prometheus.Metric, metricIdentifier MetricIdentifier, timestampedHistogramValues TimestampedHistogramValues) {
-	labelValues := metricIdentifier.LabelValues()
+func (h *HistogramVec) CollectValue(ch chan<- prometheus.Metric, labelValues LabelValues, timestampedHistogramValues TimestampedHistogramValues) {
 	metric := prometheus.MustNewConstHistogram(
 		h.Desc,
 		timestampedHistogramValues.Count,
 		timestampedHistogramValues.Sum,
 		timestampedHistogramValues.Buckets,
-		labelValues...,
+		labelValues.LabelValues()...,
 	)
 	if Config.Prometheus.Timestamps {
 		metricWithTimesamp := prometheus.NewMetricWithTimestamp(timestampedHistogramValues.Timestamp, metric)
@@ -89,20 +95,26 @@ func (h *HistogramVec) CollectValue(ch chan<- prometheus.Metric, metricIdentifie
 
 func (h *HistogramVec) Collect(ch chan<- prometheus.Metric) {
 
-	for metricIdentifier, valueHistory := range h.Values {
+	for labelValues, valueHistory := range h.Values {
 		if Config.Prometheus.Timestamps {
 			for _, timestampedHistogramValues := range valueHistory.Values {
-				h.CollectValue(ch, metricIdentifier, timestampedHistogramValues)
+				h.CollectValue(ch, labelValues, timestampedHistogramValues)
 			}
 		} else {
 			if !valueHistory.IsEmpty() && Config.Prometheus.IsInTimeWindow(valueHistory.Values[0].Timestamp) {
-				h.CollectValue(ch, metricIdentifier, valueHistory.Values[0])
+				h.CollectValue(ch, labelValues, valueHistory.Values[0])
 			}
 		}
 	}
 }
 
-func (h *HistogramVec) WithLabelValues(metricIdentifier MetricIdentifier) (HistogramValuesHistory, bool) {
-	history, ok := h.Values[metricIdentifier]
-	return history, ok
+func (h *HistogramVec) WithLabelValues(labelValues LabelValues) HistogramValuesHistory {
+	history, ok := h.Values[labelValues]
+	if !ok {
+		history = HistogramValuesHistory{
+			Values: make([]TimestampedHistogramValues, 0),
+		}
+		h.Values[labelValues] = history
+	}
+	return history
 }

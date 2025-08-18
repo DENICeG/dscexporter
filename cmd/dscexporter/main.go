@@ -83,7 +83,8 @@ func main() {
 
 	slog.Info("Parsed config", "path", *configPath)
 
-	prometheusExporter := exporters.NewPrometheusExporter(conf)
+	exporters.SetConf(&conf)
+	prometheusExporter := exporters.NewPrometheusExporter()
 	go scheduler.Run(conf, prometheusExporter, scheduler.ReadAndExportDir)
 
 	prometheusExporter.StartPrometheusExporter()

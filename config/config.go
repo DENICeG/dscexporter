@@ -92,7 +92,7 @@ type BucketParams struct {
 	Start       int
 	Width       int
 	Count       int
-	NoneCounter bool
+	NoneCounter bool // Remove
 	UseMidpoint bool
 }
 
