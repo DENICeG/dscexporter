@@ -21,15 +21,15 @@ const NAMESERVER_LABEL = "ns"
 const LOCATION_LABEL = "loc"
 
 type MetricIdentifier struct {
-	DatasetName string
-	Location    string
-	Nameserver  string
-	Label1      string
-	Label2      string
+	MetricName string
+	Location   string
+	Nameserver string
+	Label1     string
+	Label2     string
 }
 
 type PrometheusExporter struct {
-	MetricsRing   [][]prometheus.Metric //Ring buffer for metrics # Geht nicht... Zwischenspeicher
+	MetricsRing   [][]prometheus.Metric //Ring buffer for metrics
 	CurrentValues map[MetricIdentifier]any
 	windowSize    int
 	start         int
@@ -150,12 +150,12 @@ func (pe *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (pe *PrometheusExporter) CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float64, bucketCount float64, datasetName string) (buckets map[float64]uint64, count uint64, sum float64, noneCounter float64) {
+func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float64, bucketCount float64, datasetName string) (buckets map[float64]uint64, count uint64, sum float64, noneCounter float64) {
 
 	buckets = make(map[float64]uint64)
 
 	for i := 0.0; i < bucketCount; i++ {
-		buckets[bucketStart+bucketWidth*i] = 0
+		buckets[bucketStart+bucketWidth*i] = 0 // The key is the bucket border (the le label)
 	}
 
 	count = uint64(0)
@@ -190,11 +190,12 @@ func (pe *PrometheusExporter) CalculateBuckets(row *dscparser.Row, bucketStart f
 		count += uint64(cell.Count)
 		sum += float64(cell.Count) * value
 
-		bucket := float64(int((bucketStart+value)/bucketWidth))*bucketWidth + bucketStart // Calculate value for the histogram le label
-		if bucket <= bucketStart+bucketCount*bucketWidth {                                //  Check that the label is unter maximum le label. Bigger labels are represented by the +inf label
-			buckets[bucket] += uint64(cell.Count)
+		for i := 0.0; i < bucketCount; i++ {
+			le := bucketStart + bucketWidth*i
+			if value <= le {
+				buckets[le] += uint64(cell.Count)
+			}
 		}
-
 	}
 
 	return //Named return values are returned
@@ -240,7 +241,7 @@ func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metric
 
 	for _, row := range dataset.Data.Rows {
 
-		buckets, count, sum, noneCounter := pe.CalculateBuckets(
+		buckets, count, sum, noneCounter := CalculateBuckets(
 			&row,
 			float64(params.Start),
 			float64(params.Width),
@@ -392,8 +393,8 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 
 	slog.Info("Starting prometheus exporter", "url", fmt.Sprintf("http://localhost:%d/metrics", pe.Config.Prometheus.Port))
 
-	registry := prometheus.NewPedanticRegistry()
-	//registry := prometheus.NewRegistry()
+	//registry := prometheus.NewPedanticRegistry()
+	registry := prometheus.NewRegistry()
 	registry.MustRegister(pe)
 
 	//Disabled default go_collector exports for debuging and a better overview

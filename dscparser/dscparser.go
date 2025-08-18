@@ -44,3 +44,15 @@ func ParseDataset(filePath string) *Dataset {
 
 	return &dataset
 }
+
+func ParseRow(filePath string) *Row {
+	var row Row
+
+	fileContent, err := os.ReadFile(filePath)
+	checkError(err)
+
+	err = xml.Unmarshal(fileContent, &row)
+	checkError(err)
+
+	return &row
+}
