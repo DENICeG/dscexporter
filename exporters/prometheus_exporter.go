@@ -28,28 +28,63 @@ type MetricIdentifier struct {
 	Label2     string
 }
 
+func (me *MetricIdentifier) LabelValues() []string {
+	labelValues := []string{me.Location, me.Nameserver}
+	if me.Label1 != "" {
+		labelValues = append(labelValues, me.Label1)
+	}
+	if me.Label2 != "" {
+		labelValues = append(labelValues, me.Label2)
+	}
+	return labelValues
+}
+
+type ValueTypes interface {
+	uint64 | float64 | map[float64]uint64
+}
+
 type PrometheusExporter struct {
-	MetricsRing   [][]prometheus.Metric //Ring buffer for metrics
-	CurrentValues map[MetricIdentifier]any
-	windowSize    int
-	start         int
-	Config        config.Config
+	MetricsRing          [][]prometheus.Metric //Ring buffer for metrics
+	CurrentValuesUInt    map[MetricIdentifier]uint64
+	CurrentValuesFloat   map[MetricIdentifier]float64
+	CurrentValuesBuckets map[MetricIdentifier]map[float64]uint64
+	windowSize           int
+	start                int
+	Config               config.Config
+}
+
+func (pe *PrometheusExporter) IncreaseCurrentFlaotValue(metricIdentifier MetricIdentifier, increase float64) float64 {
+	newValue := increase
+	if currentValue, ok := pe.CurrentValuesFloat[metricIdentifier]; ok {
+		newValue += currentValue
+	}
+	pe.CurrentValuesFloat[metricIdentifier] = newValue
+	return newValue
+}
+
+func (pe *PrometheusExporter) IncreaseCurrentUIntValue(metricIdentifier MetricIdentifier, increase uint64) uint64 {
+	newValue := increase
+	if currentValue, ok := pe.CurrentValuesUInt[metricIdentifier]; ok {
+		newValue += currentValue
+	}
+	pe.CurrentValuesUInt[metricIdentifier] = newValue
+	return newValue
+}
+
+func (pe *PrometheusExporter) IncreaseCurrentBucketsValue(metricIdentifier MetricIdentifier, bucketsIncrease map[float64]uint64) map[float64]uint64 {
+	newBuckets := bucketsIncrease
+	if currentBuckets, ok := pe.CurrentValuesBuckets[metricIdentifier]; ok {
+		for le := range currentBuckets {
+			newBuckets[le] += currentBuckets[le]
+		}
+	}
+	pe.CurrentValuesBuckets[metricIdentifier] = newBuckets
+	return newBuckets
 }
 
 func (pe *PrometheusExporter) AddCounter(metricIdentifier MetricIdentifier, desc *prometheus.Desc, increase float64, timestamp int64) {
-	newValue := increase
-	if currentValue, ok := pe.CurrentValues[metricIdentifier].(float64); ok {
-		newValue += currentValue
-	}
-	pe.CurrentValues[metricIdentifier] = newValue
-
-	labelValues := []string{metricIdentifier.Location, metricIdentifier.Nameserver}
-	if metricIdentifier.Label1 != "" {
-		labelValues = append(labelValues, metricIdentifier.Label1)
-	}
-	if metricIdentifier.Label2 != "" {
-		labelValues = append(labelValues, metricIdentifier.Label2)
-	}
+	newValue := pe.IncreaseCurrentFlaotValue(metricIdentifier, increase)
+	labelValues := metricIdentifier.LabelValues()
 
 	metric := prometheus.MustNewConstMetric(
 		desc,
@@ -63,41 +98,28 @@ func (pe *PrometheusExporter) AddCounter(metricIdentifier MetricIdentifier, desc
 	} else {
 		pe.MetricsRing[0] = append(pe.MetricsRing[0], metric)
 	}
+
 }
 
-func (pe *PrometheusExporter) AddHistogram(metricIdentifier MetricIdentifier, desc *prometheus.Desc, buckets map[float64]uint64, count uint64, sum float64, timestamp int64) {
+func (pe *PrometheusExporter) AddHistogram(metricIdentifier MetricIdentifier, desc *prometheus.Desc, bucketsIncrease map[float64]uint64, countIncrease uint64, sumIncrease float64, timestamp int64) {
 
-	if currentBuckets, ok := pe.CurrentValues[metricIdentifier].(map[float64]uint64); ok {
-		for le := range buckets {
-			buckets[le] += currentBuckets[le]
-		}
-	}
-	pe.CurrentValues[metricIdentifier] = buckets
+	newBuckets := pe.IncreaseCurrentBucketsValue(metricIdentifier, bucketsIncrease)
 
 	countIdentifier := metricIdentifier
-	countIdentifier.DatasetName = fmt.Sprintf("%v_count", countIdentifier.DatasetName)
-	if currentCount, ok := pe.CurrentValues[countIdentifier].(uint64); ok {
-		count += currentCount
-	}
-	pe.CurrentValues[countIdentifier] = count
+	countIdentifier.MetricName = fmt.Sprintf("%v_count", metricIdentifier.MetricName)
+	newCount := pe.IncreaseCurrentUIntValue(countIdentifier, countIncrease)
 
 	sumIdentifier := metricIdentifier
-	sumIdentifier.DatasetName = fmt.Sprintf("%v_sum", sumIdentifier.DatasetName)
-	if currentSum, ok := pe.CurrentValues[sumIdentifier].(float64); ok {
-		sum += currentSum
-	}
-	pe.CurrentValues[sumIdentifier] = sum
+	sumIdentifier.MetricName = fmt.Sprintf("%v_sum", metricIdentifier.MetricName)
+	newSum := pe.IncreaseCurrentFlaotValue(metricIdentifier, sumIncrease)
 
-	labelValues := []string{metricIdentifier.Location, metricIdentifier.Nameserver}
-	if metricIdentifier.Label1 != "" {
-		labelValues = append(labelValues, metricIdentifier.Label1)
-	}
+	labelValues := metricIdentifier.LabelValues()
 
 	metric := prometheus.MustNewConstHistogram(
 		desc,
-		count,
-		sum,
-		buckets,
+		newCount,
+		newSum,
+		newBuckets,
 		labelValues...,
 	)
 
@@ -121,15 +143,17 @@ func (pe *PrometheusExporter) ExportTimestamp() {
 
 func NewPrometheusExporter(config config.Config) *PrometheusExporter {
 	windowSize := config.Prometheus.WindowSize
-	if !config.Prometheus.Timestamps {
-		windowSize = 1
-	}
+	// if !config.Prometheus.Timestamps {
+	// 	windowSize = 1
+	// }
 	return &PrometheusExporter{
-		MetricsRing:   make([][]prometheus.Metric, 0),
-		CurrentValues: make(map[MetricIdentifier]any),
-		windowSize:    windowSize,
-		start:         -1,
-		Config:        config,
+		MetricsRing:          make([][]prometheus.Metric, 0),
+		CurrentValuesFloat:   make(map[MetricIdentifier]float64),
+		CurrentValuesUInt:    make(map[MetricIdentifier]uint64),
+		CurrentValuesBuckets: make(map[MetricIdentifier]map[float64]uint64),
+		windowSize:           windowSize,
+		start:                0,
+		Config:               config,
 	}
 }
 
@@ -138,13 +162,13 @@ func (pe *PrometheusExporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (pe *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
-	if pe.start < 0 {
-		return // No metrics yet
-	}
 
-	for i := 0; i < min(len(pe.MetricsRing)-pe.start, pe.windowSize); i++ {
-		metricsAtTimestamp := pe.MetricsRing[i+pe.start]
+	//exportedMetrics := make(map[int]bool)
+
+	for i := pe.start; i < min(len(pe.MetricsRing), pe.start+pe.windowSize); i++ {
+		metricsAtTimestamp := pe.MetricsRing[i]
 		for _, metric := range metricsAtTimestamp {
+			fmt.Println(metric.Desc().String())
 			ch <- metric
 		}
 	}
@@ -201,30 +225,24 @@ func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float
 	return //Named return values are returned
 }
 
-func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metricConfig config.MetricConfig, location string, nameserver string) {
-
+func (pe *PrometheusExporter) CreateHistogramDesc(dataset *dscparser.Dataset) (string, *prometheus.Desc, string, *prometheus.Desc) {
 	dim1 := dataset.DimensionInfo[0].Type
 	dim2 := dataset.DimensionInfo[1].Type
 
-	_, params := metricConfig.IsBucket(dim2)
-
 	metricName := fmt.Sprintf("dsc_exporter_%v_%v", dataset.Name, dim2)
 	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v", dataset.Name, dim2)
-	if params.UseMidpoint {
-		metricHelp += " - DO NOT use the _sum value! This metric is based of a ranges in the dsc files, so the _sum value cant be calculated correctly"
-	}
 
 	labels := []string{LOCATION_LABEL, NAMESERVER_LABEL}
 	if dim1 != "All" {
 		labels = append(labels, dim1)
 	}
-
 	desc := prometheus.NewDesc(
 		metricName,
 		metricHelp,
 		labels,
 		nil,
 	)
+
 	noneCounterMetricName := fmt.Sprintf("dsc_exporter_%v_%v_None", dataset.Name, dim2)
 	noneCounterMetricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v for value None", dataset.Name, dim2)
 	noneCounterDesc := prometheus.NewDesc(
@@ -233,14 +251,17 @@ func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metric
 		labels,
 		nil,
 	)
+	return metricName, desc, noneCounterMetricName, noneCounterDesc
+}
 
-	allBuckets := make(map[float64]uint64)
-	allCount := uint64(0)
-	allSum := 0.0
-	allNoneCounter := 0.0
+func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metricConfig config.MetricConfig, location string, nameserver string) {
+
+	dim1 := dataset.DimensionInfo[0].Type
+	dim2 := dataset.DimensionInfo[1].Type
+	metricName, desc, noneCounterMetricName, noneCounterDesc := pe.CreateHistogramDesc(dataset)
+	_, params := metricConfig.IsBucket(dim2)
 
 	for _, row := range dataset.Data.Rows {
-
 		buckets, count, sum, noneCounter := CalculateBuckets(
 			&row,
 			float64(params.Start),
@@ -249,51 +270,26 @@ func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metric
 			dataset.Name,
 		)
 
-		if dim1 != "All" {
-			metricIdentifier := MetricIdentifier{
-				DatasetName: dataset.Name,
-				Location:    location,
-				Nameserver:  nameserver,
-				Label1:      row.Value,
-			}
-
-			pe.AddHistogram(metricIdentifier, desc, buckets, count, sum, dataset.StopTime)
-
-			if noneCounter > 0 {
-				noneCounterIdentifier := metricIdentifier
-				noneCounterIdentifier.DatasetName = fmt.Sprintf("%v_none", noneCounterIdentifier.DatasetName)
-				pe.AddCounter(metricIdentifier, noneCounterDesc, noneCounter, dataset.StopTime)
-			}
-		} else {
-			for le := range buckets {
-				if _, ok := allBuckets[le]; !ok {
-					allBuckets[le] = 0
-				}
-				allBuckets[le] += buckets[le]
-			}
-			allCount += count
-			allSum += sum
-			allNoneCounter += noneCounter
-		}
-	}
-
-	if dim1 == "All" {
 		metricIdentifier := MetricIdentifier{
-			DatasetName: dataset.Name,
-			Location:    location,
-			Nameserver:  nameserver,
+			MetricName: metricName,
+			Location:   location,
+			Nameserver: nameserver,
+		}
+		if dim1 != "All" {
+			metricIdentifier.Label1 = row.Value
 		}
 
-		pe.AddHistogram(metricIdentifier, desc, allBuckets, allCount, allSum, dataset.StopTime)
-		if allNoneCounter > 0 {
+		pe.AddHistogram(metricIdentifier, desc, buckets, count, sum, dataset.StopTime)
+
+		if noneCounter > 0 {
 			noneCounterIdentifier := metricIdentifier
-			noneCounterIdentifier.DatasetName = fmt.Sprintf("%v_none", noneCounterIdentifier.DatasetName)
-			pe.AddCounter(metricIdentifier, noneCounterDesc, allNoneCounter, dataset.StopTime)
+			noneCounterIdentifier.MetricName = noneCounterMetricName
+			pe.AddCounter(metricIdentifier, noneCounterDesc, noneCounter, dataset.StopTime)
 		}
 	}
 }
 
-func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location string, nameserver string) {
+func (pe *PrometheusExporter) CreateCounterDesc(dataset *dscparser.Dataset) (string, *prometheus.Desc) {
 	metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
 	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
 
@@ -314,23 +310,27 @@ func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location
 		labels,
 		nil,
 	)
+	return metricName, desc
+}
+
+func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location string, nameserver string) {
+
+	dim1 := dataset.DimensionInfo[0].Type
+	dim2 := dataset.DimensionInfo[1].Type
+	metricName, desc := pe.CreateCounterDesc(dataset)
 
 	for _, row := range dataset.Data.Rows {
 		for _, cell := range row.Cells {
 
 			metricIdentifier := MetricIdentifier{
-				DatasetName: dataset.Name,
-				Location:    location,
-				Nameserver:  nameserver,
+				MetricName: metricName,
+				Location:   location,
+				Nameserver: nameserver,
 			}
-
-			labelValues := []string{location, nameserver}
 			if dim1 != "All" {
-				labelValues = append(labelValues, row.Value)
 				metricIdentifier.Label1 = row.Value
 			}
 			if dim2 != "All" {
-				labelValues = append(labelValues, cell.Value)
 				metricIdentifier.Label2 = cell.Value
 			}
 
@@ -350,15 +350,13 @@ func (pe *PrometheusExporter) IncreaseParsedFiles(location string, nameserver st
 		labels,
 		nil,
 	)
-
 	metricIdentifier := MetricIdentifier{
-		DatasetName: "parsed_files",
-		Location:    location,
-		Nameserver:  nameserver,
+		MetricName: metricName,
+		Location:   location,
+		Nameserver: nameserver,
 	}
 
 	pe.AddCounter(metricIdentifier, desc, 1.0, timestamp)
-
 }
 
 func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {

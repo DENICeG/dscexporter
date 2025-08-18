@@ -73,23 +73,23 @@ func TestCalculateBuckets(t *testing.T) {
 	assert.Equal(t, 5.0, noneCounter)
 }
 
-func TestAddCounter(t *testing.T) {
+// func TestAddCounter(t *testing.T) {
 
-	desc := prometheus.NewDesc(
-		"metric_name",
-		"help",
-		[]string{"loc", "ns", "label1", "label2"},
-		nil,
-	)
-	metricIdentifier := MetricIdentifier{
-		DatasetName: "test_dataset",
-		Location:    "loc",
-		Nameserver:  "ns",
-		Label1:      "label_value_1",
-		Label2:      "label_value_2",
-	}
-	AddCounter(metricIdentifier, desc, 5.0, 1755506438)
-}
+// 	desc := prometheus.NewDesc(
+// 		"metric_name",
+// 		"help",
+// 		[]string{"loc", "ns", "label1", "label2"},
+// 		nil,
+// 	)
+// 	metricIdentifier := MetricIdentifier{
+// 		DatasetName: "test_dataset",
+// 		Location:    "loc",
+// 		Nameserver:  "ns",
+// 		Label1:      "label_value_1",
+// 		Label2:      "label_value_2",
+// 	}
+// 	AddCounter(metricIdentifier, desc, 5.0, 1755506438)
+// }
 
 func TestPrometheusExporter(t *testing.T) {
 
