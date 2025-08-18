@@ -62,13 +62,13 @@ func (h *HistogramValuesHistory) Add(bucketsIncrease map[float64]uint64, countIn
 }
 
 type HistogramVec struct {
-	Values map[LabelValues]HistogramValuesHistory
+	Values map[LabelValues]*HistogramValuesHistory
 	Desc   *prometheus.Desc
 }
 
 func CreateHistogramVec(desc *prometheus.Desc) *HistogramVec {
 	return &HistogramVec{
-		Values: make(map[LabelValues]HistogramValuesHistory),
+		Values: make(map[LabelValues]*HistogramValuesHistory),
 		Desc:   desc,
 	}
 }
@@ -108,10 +108,10 @@ func (h *HistogramVec) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (h *HistogramVec) WithLabelValues(labelValues LabelValues) HistogramValuesHistory {
+func (h *HistogramVec) WithLabelValues(labelValues LabelValues) *HistogramValuesHistory {
 	history, ok := h.Values[labelValues]
 	if !ok {
-		history = HistogramValuesHistory{
+		history = &HistogramValuesHistory{
 			Values: make([]TimestampedHistogramValues, 0),
 		}
 		h.Values[labelValues] = history

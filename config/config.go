@@ -35,7 +35,7 @@ type PrometheusConfig struct {
 }
 
 func (p *PrometheusConfig) IsInTimeWindow(timestamp time.Time) bool {
-	endOfWindow := time.Now().Add(time.Duration(p.WindowSize) * time.Minute)
+	endOfWindow := time.Now().Add(-time.Duration(p.WindowSize) * time.Minute)
 	return timestamp.After(endOfWindow)
 }
 

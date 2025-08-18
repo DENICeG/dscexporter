@@ -94,8 +94,9 @@ func TestCalculateBuckets(t *testing.T) {
 func TestPrometheusExporter(t *testing.T) {
 
 	config := config.ParseConfig("./testdata/config.yaml")
+	SetConf(&config)
 
-	prometheusExporter := NewPrometheusExporter(config)
+	prometheusExporter := NewPrometheusExporter()
 
 	go prometheusExporter.StartPrometheusExporter()
 
@@ -120,7 +121,8 @@ func TestPrometheusExporter(t *testing.T) {
 
 func TestNewPrometheusExporter(t *testing.T) {
 	config := config.ParseConfig("./testdata/config.yaml")
+	SetConf(&config)
 	//Shouldnt panic when creating multiple Exporters
-	NewPrometheusExporter(config)
-	NewPrometheusExporter(config)
+	NewPrometheusExporter()
+	NewPrometheusExporter()
 }

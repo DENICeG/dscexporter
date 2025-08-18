@@ -38,13 +38,13 @@ func (h *CounterValueHistory) Add(increase float64, timestamp time.Time) {
 }
 
 type CounterVec struct {
-	Values map[LabelValues]CounterValueHistory
+	Values map[LabelValues]*CounterValueHistory
 	Desc   *prometheus.Desc
 }
 
 func CreateCounterVec(desc *prometheus.Desc) *CounterVec {
 	return &CounterVec{
-		Values: make(map[LabelValues]CounterValueHistory),
+		Values: make(map[LabelValues]*CounterValueHistory),
 		Desc:   desc,
 	}
 }
@@ -83,10 +83,10 @@ func (c *CounterVec) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (c *CounterVec) WithLabelValues(labelValues LabelValues) CounterValueHistory {
+func (c *CounterVec) WithLabelValues(labelValues LabelValues) *CounterValueHistory {
 	history, ok := c.Values[labelValues]
 	if !ok {
-		history = CounterValueHistory{
+		history = &CounterValueHistory{
 			Values: make([]TimestampedValue, 0),
 		}
 		c.Values[labelValues] = history
