@@ -17,6 +17,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var Config *config.Config
+
 const NAMESERVER_LABEL = "ns"
 const LOCATION_LABEL = "loc"
 
@@ -37,10 +39,6 @@ func (me *MetricIdentifier) LabelValues() []string {
 		labelValues = append(labelValues, me.Label2)
 	}
 	return labelValues
-}
-
-type ValueTypes interface {
-	uint64 | float64 | map[float64]uint64
 }
 
 type PrometheusExporter struct {

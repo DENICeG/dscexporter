@@ -34,6 +34,11 @@ type PrometheusConfig struct {
 	WindowSize int                     `yaml:"windowsize"`
 }
 
+func (p *PrometheusConfig) IsInTimeWindow(timestamp time.Time) bool {
+	endOfWindow := time.Now().Add(time.Duration(p.WindowSize) * time.Minute)
+	return timestamp.After(endOfWindow)
+}
+
 // type DatabaseConfig struct {
 // 	Metrics []MetricConfig `yaml:"metrics"`
 // }
