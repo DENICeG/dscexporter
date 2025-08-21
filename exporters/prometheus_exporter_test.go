@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
@@ -96,12 +97,13 @@ func TestPrometheusExporter(t *testing.T) {
 	config := config.ParseConfig("./testdata/config.yaml")
 	SetConf(&config)
 
+	//TODO: Fix tests
 	prometheusExporter := NewPrometheusExporter()
 
 	go prometheusExporter.StartPrometheusExporter()
 
 	//Export dsc file and check if its correctly exported
-	dscData := dscparser.ReadFile("./testdata/test_dsc_file.xml", "loc", "ns")
+	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", time.Now().Add(-time.Minute))
 	prometheusExporter.ExportDSCData(dscData)
 
 	metrics := getMetrics(t, config)
@@ -110,10 +112,11 @@ func TestPrometheusExporter(t *testing.T) {
 	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
 
 	//Export another dsc file and check if its correctly exported too
-	dscData2 := dscparser.ReadFile("./testdata/test_dsc_file2.xml", "loc", "ns")
+	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", time.Now())
 	prometheusExporter.ExportDSCData(dscData2)
 
 	metrics = getMetrics(t, config)
+	fmt.Println(metrics)
 	expected_metrics, err = os.ReadFile("./testdata/expected_metrics2.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))

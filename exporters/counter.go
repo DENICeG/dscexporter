@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"slices"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -13,6 +14,12 @@ type TimestampedValue struct {
 
 type CounterValueHistory struct {
 	Values []TimestampedValue
+}
+
+func CreateCounterValueHistory() *CounterValueHistory {
+	return &CounterValueHistory{
+		Values: make([]TimestampedValue, 0),
+	}
 }
 
 func (h *CounterValueHistory) IsEmpty() bool {
@@ -33,7 +40,7 @@ func (h *CounterValueHistory) Add(increase float64, timestamp time.Time) {
 		Value:     newValue,
 		Timestamp: timestamp,
 	}
-	h.Values = append(h.Values, timestampedValue)
+	h.Values = slices.Insert(h.Values, 0, timestampedValue)
 	h.Values = h.Values[0:min(len(h.Values), Config.Prometheus.WindowSize)]
 }
 
@@ -73,7 +80,9 @@ func (c *CounterVec) Collect(ch chan<- prometheus.Metric) {
 	for labelValues, valueHistory := range c.Values {
 		if Config.Prometheus.Timestamps {
 			for _, timestampedValue := range valueHistory.Values {
-				c.CollectValue(ch, labelValues, timestampedValue)
+				if Config.Prometheus.IsInTimeWindow(timestampedValue.Timestamp) {
+					c.CollectValue(ch, labelValues, timestampedValue)
+				}
 			}
 		} else {
 			if !valueHistory.IsEmpty() && Config.Prometheus.IsInTimeWindow(valueHistory.Values[0].Timestamp) {
@@ -86,9 +95,7 @@ func (c *CounterVec) Collect(ch chan<- prometheus.Metric) {
 func (c *CounterVec) WithLabelValues(labelValues LabelValues) *CounterValueHistory {
 	history, ok := c.Values[labelValues]
 	if !ok {
-		history = &CounterValueHistory{
-			Values: make([]TimestampedValue, 0),
-		}
+		history = CreateCounterValueHistory()
 		c.Values[labelValues] = history
 	}
 	return history

@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"slices"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,14 +23,6 @@ func (h *HistogramValuesHistory) IsEmpty() bool {
 }
 
 func (h *HistogramValuesHistory) checkValues(bucketsIncrease map[float64]uint64, countIncrease uint64, sumIncrease float64) {
-	for _, inc := range bucketsIncrease {
-		if inc < 0 {
-			panic("Bucket increase for histogram metric can't be smaller than 0")
-		}
-	}
-	if countIncrease < 0 {
-		panic("Count increase for histogram metric can't be smaller than 0")
-	}
 	if sumIncrease < 0 {
 		panic("Sum increase for histogram metric can't be smaller than 0")
 	}
@@ -57,7 +50,7 @@ func (h *HistogramValuesHistory) Add(bucketsIncrease map[float64]uint64, countIn
 		Sum:       newSum,
 		Timestamp: timestamp,
 	}
-	h.Values = append(h.Values, timestampedValue)
+	h.Values = slices.Insert(h.Values, 0, timestampedValue)
 	h.Values = h.Values[0:min(len(h.Values), Config.Prometheus.WindowSize)]
 }
 
@@ -98,7 +91,9 @@ func (h *HistogramVec) Collect(ch chan<- prometheus.Metric) {
 	for labelValues, valueHistory := range h.Values {
 		if Config.Prometheus.Timestamps {
 			for _, timestampedHistogramValues := range valueHistory.Values {
-				h.CollectValue(ch, labelValues, timestampedHistogramValues)
+				if Config.Prometheus.IsInTimeWindow(timestampedHistogramValues.Timestamp) {
+					h.CollectValue(ch, labelValues, timestampedHistogramValues)
+				}
 			}
 		} else {
 			if !valueHistory.IsEmpty() && Config.Prometheus.IsInTimeWindow(valueHistory.Values[0].Timestamp) {
