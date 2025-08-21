@@ -1,115 +1,66 @@
 package exporters
 
 import (
-	"slices"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type TimestampedHistogramValues struct {
+type HistogramValue struct {
 	Buckets   map[float64]uint64
 	Count     uint64
 	Sum       float64
 	Timestamp time.Time
 }
 
-type HistogramValuesHistory struct {
-	Values []TimestampedHistogramValues
+func (v HistogramValue) GetMetric(labelValues LabelValues, desc *prometheus.Desc) prometheus.Metric {
+	return prometheus.MustNewConstHistogram(
+		desc,
+		v.Count,
+		v.Sum,
+		v.Buckets,
+		labelValues.ToList()...,
+	)
 }
 
-func (h *HistogramValuesHistory) IsEmpty() bool {
-	return len(h.Values) == 0
+func (v HistogramValue) GetTimestamp() time.Time {
+	return v.Timestamp
 }
 
-func (h *HistogramValuesHistory) checkValues(bucketsIncrease map[float64]uint64, countIncrease uint64, sumIncrease float64) {
-	if sumIncrease < 0 {
-		panic("Sum increase for histogram metric can't be smaller than 0")
+type HistogramVec struct {
+	*MetricVec[HistogramValue]
+}
+
+func NewHistogramVec(desc *prometheus.Desc) *HistogramVec {
+	metricVec := NewMetricVec[HistogramValue](desc)
+	return &HistogramVec{
+		MetricVec: metricVec,
 	}
 }
 
-func (h *HistogramValuesHistory) Add(bucketsIncrease map[float64]uint64, countIncrease uint64, sumIncrease float64, timestamp time.Time) {
-	h.checkValues(bucketsIncrease, countIncrease, sumIncrease)
-
+func (h *HistogramVec) Add(labelValues LabelValues, bucketsIncrease map[float64]uint64, countIncrease uint64, sumIncrease float64, timestamp time.Time) {
+	if sumIncrease < 0 {
+		panic("Sum increase for histogram metric can't be smaller than 0")
+	}
 	newBuckets := bucketsIncrease
 	newCount := countIncrease
 	newSum := sumIncrease
 
-	if !h.IsEmpty() {
-		currentBuckets := h.Values[0].Buckets
+	history := h.withLabelValues(labelValues)
+	if !history.IsEmpty() {
+		currentBuckets := history.Values[0].Buckets
 		for le := range currentBuckets {
 			newBuckets[le] += currentBuckets[le]
 		}
-		newCount += h.Values[0].Count
-		newSum += h.Values[0].Sum
+		newCount += history.Values[0].Count
+		newSum += history.Values[0].Sum
 	}
 
-	timestampedValue := TimestampedHistogramValues{
+	value := HistogramValue{
 		Buckets:   newBuckets,
 		Count:     newCount,
 		Sum:       newSum,
 		Timestamp: timestamp,
 	}
-	h.Values = slices.Insert(h.Values, 0, timestampedValue)
-	h.Values = h.Values[0:min(len(h.Values), Config.Prometheus.WindowSize)]
-}
-
-type HistogramVec struct {
-	Values map[LabelValues]*HistogramValuesHistory
-	Desc   *prometheus.Desc
-}
-
-func CreateHistogramVec(desc *prometheus.Desc) *HistogramVec {
-	return &HistogramVec{
-		Values: make(map[LabelValues]*HistogramValuesHistory),
-		Desc:   desc,
-	}
-}
-
-func (h *HistogramVec) Describe(ch chan<- *prometheus.Desc) {
-	prometheus.DescribeByCollect(h, ch)
-}
-
-func (h *HistogramVec) CollectValue(ch chan<- prometheus.Metric, labelValues LabelValues, timestampedHistogramValues TimestampedHistogramValues) {
-	metric := prometheus.MustNewConstHistogram(
-		h.Desc,
-		timestampedHistogramValues.Count,
-		timestampedHistogramValues.Sum,
-		timestampedHistogramValues.Buckets,
-		labelValues.LabelValues()...,
-	)
-	if Config.Prometheus.Timestamps {
-		metricWithTimesamp := prometheus.NewMetricWithTimestamp(timestampedHistogramValues.Timestamp, metric)
-		ch <- metricWithTimesamp
-	} else {
-		ch <- metric
-	}
-}
-
-func (h *HistogramVec) Collect(ch chan<- prometheus.Metric) {
-
-	for labelValues, valueHistory := range h.Values {
-		if Config.Prometheus.Timestamps {
-			for _, timestampedHistogramValues := range valueHistory.Values {
-				if Config.Prometheus.IsInTimeWindow(timestampedHistogramValues.Timestamp) {
-					h.CollectValue(ch, labelValues, timestampedHistogramValues)
-				}
-			}
-		} else {
-			if !valueHistory.IsEmpty() && Config.Prometheus.IsInTimeWindow(valueHistory.Values[0].Timestamp) {
-				h.CollectValue(ch, labelValues, valueHistory.Values[0])
-			}
-		}
-	}
-}
-
-func (h *HistogramVec) WithLabelValues(labelValues LabelValues) *HistogramValuesHistory {
-	history, ok := h.Values[labelValues]
-	if !ok {
-		history = &HistogramValuesHistory{
-			Values: make([]TimestampedHistogramValues, 0),
-		}
-		h.Values[labelValues] = history
-	}
-	return history
+	history.AddValue(value)
 }

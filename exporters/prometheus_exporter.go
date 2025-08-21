@@ -26,37 +26,16 @@ func SetConf(config *config.Config) {
 const NAMESERVER_LABEL = "ns"
 const LOCATION_LABEL = "loc"
 
-type MetricVec interface {
-	Collect(ch chan<- prometheus.Metric)
-	Describe(ch chan<- *prometheus.Desc)
-}
-
-type LabelValues struct {
-	Location   string
-	Nameserver string
-	Label1     string
-	Label2     string
-}
-
-func (me *LabelValues) LabelValues() []string {
-	labelValues := []string{me.Location, me.Nameserver}
-	if me.Label1 != "" {
-		labelValues = append(labelValues, me.Label1)
-	}
-	if me.Label2 != "" {
-		labelValues = append(labelValues, me.Label2)
-	}
-	return labelValues
-}
-
 type PrometheusExporter struct {
-	Metrics map[string]MetricVec
-	mutex   sync.Mutex // Mutex to make sure that metrics are not queried while a DSC file gets parsed
+	Counters   map[string]*CounterVec
+	Histograms map[string]*HistogramVec
+	mutex      sync.Mutex // Mutex to make sure that metrics are not queried while a DSC file gets parsed
 }
 
 func NewPrometheusExporter() *PrometheusExporter {
 	return &PrometheusExporter{
-		Metrics: make(map[string]MetricVec),
+		Counters:   make(map[string]*CounterVec),
+		Histograms: make(map[string]*HistogramVec),
 	}
 }
 
@@ -67,9 +46,36 @@ func (pe *PrometheusExporter) Describe(ch chan<- *prometheus.Desc) {
 func (pe *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 	pe.mutex.Lock()
 	defer pe.mutex.Unlock()
-	for _, metric := range pe.Metrics {
+	for _, metric := range pe.Counters {
 		metric.Collect(ch)
 	}
+	for _, metric := range pe.Histograms {
+		metric.Collect(ch)
+	}
+}
+
+func (pe *PrometheusExporter) CreateCounter(metricName string, metricHelp string, labels []string) *CounterVec {
+	desc := prometheus.NewDesc(
+		metricName,
+		metricHelp,
+		labels,
+		nil,
+	)
+	counterVec := NewCounterVec(desc)
+	pe.Counters[metricName] = counterVec
+	return counterVec
+}
+
+func (pe *PrometheusExporter) CreateHistogram(metricName string, metricHelp string, labels []string) *HistogramVec {
+	desc := prometheus.NewDesc(
+		metricName,
+		metricHelp,
+		labels,
+		nil,
+	)
+	histogramVec := NewHistogramVec(desc)
+	pe.Histograms[metricName] = histogramVec
+	return histogramVec
 }
 
 func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float64, bucketCount float64, datasetName string) (buckets map[float64]uint64, count uint64, sum float64, noneCounter float64) {
@@ -129,43 +135,25 @@ func (pe *PrometheusExporter) CreateMissingHistogramVec(dataset *dscparser.Datas
 	dim2 := dataset.DimensionInfo[1].Type
 	metricName := fmt.Sprintf("dsc_exporter_%v_%v", dataset.Name, dim2)
 
-	histogramVecUncasted, ok := pe.Metrics[metricName]
-	if ok {
-		histogramVec = histogramVecUncasted.(*HistogramVec)
-	} else {
+	histogramVec, ok := pe.Histograms[metricName]
+	if !ok {
 		metricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v", dataset.Name, dim2)
 		labels := []string{LOCATION_LABEL, NAMESERVER_LABEL}
 		if dim1 != "All" {
 			labels = append(labels, dim1)
 		}
-		desc := prometheus.NewDesc(
-			metricName,
-			metricHelp,
-			labels,
-			nil,
-		)
-		histogramVec = CreateHistogramVec(desc)
-		pe.Metrics[metricName] = histogramVec
+		histogramVec = pe.CreateHistogram(metricName, metricHelp, labels)
 	}
 
 	noneCounterMetricName := fmt.Sprintf("dsc_exporter_%v_%v_None", dataset.Name, dim2)
-	noneCounterVecUncasted, ok := pe.Metrics[noneCounterMetricName]
-	if ok {
-		noneCounterVec = noneCounterVecUncasted.(*CounterVec)
-	} else {
+	noneCounterVec, ok = pe.Counters[noneCounterMetricName]
+	if !ok {
 		noneCounterMetricHelp := fmt.Sprintf("DSC-Metric from dataset %v for %v for value None", dataset.Name, dim2)
 		labels := []string{LOCATION_LABEL, NAMESERVER_LABEL}
 		if dim1 != "All" {
 			labels = append(labels, dim1)
 		}
-		noneCounterDesc := prometheus.NewDesc(
-			noneCounterMetricName,
-			noneCounterMetricHelp,
-			labels,
-			nil,
-		)
-		noneCounterVec = CreateCounterVec(noneCounterDesc)
-		pe.Metrics[noneCounterMetricName] = noneCounterVec
+		noneCounterVec = pe.CreateCounter(noneCounterMetricName, noneCounterMetricHelp, labels)
 	}
 	return
 }
@@ -196,20 +184,17 @@ func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metric
 
 		timestamp := time.Unix(dataset.StopTime, 0)
 
-		history := histogramVec.WithLabelValues(labelVales)
-		history.Add(buckets, count, sum, timestamp)
-
+		histogramVec.Add(labelVales, buckets, count, sum, timestamp)
 		if noneCounter > 0 {
-			noneCounterHistory := noneCounterVec.WithLabelValues(labelVales)
-			noneCounterHistory.Add(noneCounter, timestamp)
+			noneCounterVec.Add(labelVales, noneCounter, timestamp)
 		}
 	}
 }
 
 func (pe *PrometheusExporter) CreateMissingCounterVec(dataset *dscparser.Dataset) *CounterVec {
 	metricName := fmt.Sprintf("dsc_exporter_%v", dataset.Name)
-	if counterVec, ok := pe.Metrics[metricName]; ok {
-		return counterVec.(*CounterVec)
+	if counterVec, ok := pe.Counters[metricName]; ok {
+		return counterVec
 	}
 
 	metricHelp := fmt.Sprintf("DSC-Metric from dataset %v", dataset.Name)
@@ -223,17 +208,7 @@ func (pe *PrometheusExporter) CreateMissingCounterVec(dataset *dscparser.Dataset
 	if dim2 != "All" {
 		labels = append(labels, dim2)
 	}
-
-	desc := prometheus.NewDesc(
-		metricName,
-		metricHelp,
-		labels,
-		nil,
-	)
-
-	counterVec := CreateCounterVec(desc)
-	pe.Metrics[metricName] = counterVec
-	return counterVec
+	return pe.CreateCounter(metricName, metricHelp, labels)
 }
 
 func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location string, nameserver string) {
@@ -255,45 +230,28 @@ func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location
 			if dim2 != "All" {
 				labelValues.Label2 = cell.Value
 			}
-
-			valueHistory := counterVec.WithLabelValues(labelValues)
-			valueHistory.Add(float64(cell.Count), time.Unix(dataset.StopTime, 0))
+			counterVec.Add(labelValues, float64(cell.Count), time.Unix(dataset.StopTime, 0))
 		}
 	}
 }
 
 func (pe *PrometheusExporter) IncreaseParsedFiles(location string, nameserver string, timestamp int64) {
 	metricName := "dsc_exporter_parsed_files"
-	counterVecUncasted, ok := pe.Metrics[metricName]
-	var counterVec *CounterVec
-	if ok {
-		counterVec = counterVecUncasted.(*CounterVec)
-	} else {
+	counterVec, ok := pe.Counters[metricName]
+	if !ok {
 		metricHelp := "How many files the dsc exporter parsed for each ns"
 		labels := []string{LOCATION_LABEL, NAMESERVER_LABEL}
-		desc := prometheus.NewDesc(
-			metricName,
-			metricHelp,
-			labels,
-			nil,
-		)
-		counterVec = CreateCounterVec(desc)
-		pe.Metrics[metricName] = counterVec
+		counterVec = pe.CreateCounter(metricName, metricHelp, labels)
 	}
 
 	labelValues := LabelValues{
 		Location:   location,
 		Nameserver: nameserver,
 	}
-	valueHistory := counterVec.WithLabelValues(labelValues)
-	valueHistory.Add(1, time.Unix(timestamp, 0))
+	counterVec.Add(labelValues, 1, time.Unix(timestamp, 0))
 }
 
 func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
-
-	if len(dscData.Datasets) == 0 {
-		return
-	}
 	pe.mutex.Lock()
 	defer pe.mutex.Unlock()
 
