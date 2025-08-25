@@ -28,8 +28,6 @@ prometheus:
           params: 
             start: -1
             width: 50
-            none_counter: true
-            use_midpoint: true
     qr_aa_bits: {}
 
 interval: 20s # Should be different from default

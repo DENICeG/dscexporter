@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"os"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/DENICeG/dscexporter/config"
 	"github.com/DENICeG/dscexporter/dscparser"
-	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,26 +38,14 @@ func sortMetrics(metrics string) string {
 	return strings.Join(lines, "\n")
 }
 
-func TestCheckBucketBorders(t *testing.T) {
-	row := dscparser.Row{}
-	start := 31.0
-	width := 32.0
-	count := 100
-
-	buckets, _, _, _ := CalculateBuckets(&row, start, width, float64(count), "ReplyLen")
-	var bucketBorders []float64
-	for le := range buckets {
-		bucketBorders = append(bucketBorders, le)
-	}
-	sort.Float64s(bucketBorders)
-
-	expectedBucketBorders := prometheus.LinearBuckets(start, width, count)
-	assert.Equal(t, expectedBucketBorders, bucketBorders)
-}
-
 func TestCalculateBuckets(t *testing.T) {
 	row := dscparser.ParseRow("./testdata/CalculateBuckets/row.xml")
-	buckets, count, sum, noneCounter := CalculateBuckets(row, 50, 50, 5, "ReplyLen")
+	params := config.BucketParams{
+		Start: 50,
+		Width: 50,
+		Count: 5,
+	}
+	buckets, count, sum, noneCounter := CalculateBuckets(row, params, "ReplyLen")
 
 	expectedBuckets := map[float64]uint64{
 		50:  25,

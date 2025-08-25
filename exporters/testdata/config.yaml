@@ -25,6 +25,4 @@ prometheus:
             start: -1
             width: 512
             count: 6
-            none_counter: true
-            use_midpoint: true
   timestamps: false

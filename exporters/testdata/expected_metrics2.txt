@@ -5,7 +5,7 @@ dsc_exporter_parsed_files{loc="loc",ns="ns"} 2
 # TYPE dsc_exporter_pcap_stats counter
 dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="filter_received"} 16
 dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="pkts_captured"} 16
-# HELP dsc_exporter_priming_queries_EDNSBufSiz DSC-Metric from dataset priming_queries for EDNSBufSiz - DO NOT use the _sum value! This metric is based of a ranges in the dsc files, so the _sum value cant be calculated correctly
+# HELP dsc_exporter_priming_queries_EDNSBufSiz DSC-Metric from dataset priming_queries for EDNSBufSiz
 # TYPE dsc_exporter_priming_queries_EDNSBufSiz histogram
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="-1"} 0
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="511"} 0

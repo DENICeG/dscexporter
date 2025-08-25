@@ -66,24 +66,23 @@ func (pe *PrometheusExporter) CreateCounter(metricName string, metricHelp string
 	return counterVec
 }
 
-func (pe *PrometheusExporter) CreateHistogram(metricName string, metricHelp string, labels []string) *HistogramVec {
+func (pe *PrometheusExporter) CreateHistogram(metricName string, metricHelp string, labels []string, buckets []float64) *HistogramVec {
 	desc := prometheus.NewDesc(
 		metricName,
 		metricHelp,
 		labels,
 		nil,
 	)
-	histogramVec := NewHistogramVec(desc)
+	histogramVec := NewHistogramVec(desc, buckets)
 	pe.Histograms[metricName] = histogramVec
 	return histogramVec
 }
 
-func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float64, bucketCount float64, datasetName string) (buckets map[float64]uint64, count uint64, sum float64, noneCounter float64) {
+func CalculateBuckets(row *dscparser.Row, params config.BucketParams, datasetName string) (buckets map[float64]uint64, count uint64, sum float64, noneCounter float64) {
 
 	buckets = make(map[float64]uint64)
-
-	for i := 0.0; i < bucketCount; i++ {
-		buckets[bucketStart+bucketWidth*i] = 0 // The key is the bucket border (the le label)
+	for _, le := range params.Buckets() {
+		buckets[le] = 0
 	}
 
 	count = uint64(0)
@@ -118,8 +117,7 @@ func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float
 		count += uint64(cell.Count)
 		sum += float64(cell.Count) * value
 
-		for i := 0.0; i < bucketCount; i++ {
-			le := bucketStart + bucketWidth*i
+		for _, le := range params.Buckets() {
 			if value <= le {
 				buckets[le] += uint64(cell.Count)
 			}
@@ -129,7 +127,7 @@ func CalculateBuckets(row *dscparser.Row, bucketStart float64, bucketWidth float
 	return //Named return values are returned
 }
 
-func (pe *PrometheusExporter) CreateMissingHistogramVec(dataset *dscparser.Dataset) (histogramVec *HistogramVec, noneCounterVec *CounterVec) {
+func (pe *PrometheusExporter) CreateMissingHistogramVec(dataset *dscparser.Dataset, params config.BucketParams) (histogramVec *HistogramVec, noneCounterVec *CounterVec) {
 
 	dim1 := dataset.DimensionInfo[0].Type
 	dim2 := dataset.DimensionInfo[1].Type
@@ -142,7 +140,8 @@ func (pe *PrometheusExporter) CreateMissingHistogramVec(dataset *dscparser.Datas
 		if dim1 != "All" {
 			labels = append(labels, dim1)
 		}
-		histogramVec = pe.CreateHistogram(metricName, metricHelp, labels)
+
+		histogramVec = pe.CreateHistogram(metricName, metricHelp, labels, params.Buckets())
 	}
 
 	noneCounterMetricName := fmt.Sprintf("dsc_exporter_%v_%v_None", dataset.Name, dim2)
@@ -162,15 +161,13 @@ func (pe *PrometheusExporter) ExportHistogram(dataset *dscparser.Dataset, metric
 
 	dim1 := dataset.DimensionInfo[0].Type
 	dim2 := dataset.DimensionInfo[1].Type
-	histogramVec, noneCounterVec := pe.CreateMissingHistogramVec(dataset)
 	_, params := metricConfig.IsBucket(dim2)
+	histogramVec, noneCounterVec := pe.CreateMissingHistogramVec(dataset, params)
 
 	for _, row := range dataset.Data.Rows {
 		buckets, count, sum, noneCounter := CalculateBuckets(
 			&row,
-			float64(params.Start),
-			float64(params.Width),
-			float64(params.Count),
+			params,
 			dataset.Name,
 		)
 

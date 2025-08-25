@@ -9,8 +9,6 @@ prometheus:
             start: 511
             width: 512
             count: 9
-            none_counter: true
-            use_midpoint: true
     edns_version:
       aggregations: 
         EDNSVersion:
@@ -31,8 +29,6 @@ prometheus:
             start: 1023
             width: 1024
             count: 64 
-            none_counter: true
-            use_midpoint: true 
     qtype_vs_qnamelen: 
       aggregations: 
         QnameLen:
@@ -84,8 +80,6 @@ prometheus:
             start: 511
             width: 512
             count: 9
-            none_counter: true
-            use_midpoint: true
     pcap_stats: {} 
 
     # Not exported:

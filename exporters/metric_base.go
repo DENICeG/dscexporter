@@ -14,7 +14,7 @@ type LabelValues struct {
 	Label2     string
 }
 
-func (me *LabelValues) ToList() []string { //TODO: Rename
+func (me *LabelValues) ToList() []string {
 	labelValues := []string{me.Location, me.Nameserver}
 	if me.Label1 != "" {
 		labelValues = append(labelValues, me.Label1)

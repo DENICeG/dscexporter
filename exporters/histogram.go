@@ -1,6 +1,8 @@
 package exporters
 
 import (
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,12 +31,15 @@ func (v HistogramValue) GetTimestamp() time.Time {
 
 type HistogramVec struct {
 	*MetricVec[HistogramValue]
+	Buckets []float64 // all le values, except +inf
 }
 
-func NewHistogramVec(desc *prometheus.Desc) *HistogramVec {
+func NewHistogramVec(desc *prometheus.Desc, buckets []float64) *HistogramVec {
 	metricVec := NewMetricVec[HistogramValue](desc)
+	slices.Sort(buckets)
 	return &HistogramVec{
 		MetricVec: metricVec,
+		Buckets:   buckets,
 	}
 }
 
@@ -42,14 +47,27 @@ func (h *HistogramVec) Add(labelValues LabelValues, bucketsIncrease map[float64]
 	if sumIncrease < 0 {
 		panic("Sum increase for histogram metric can't be smaller than 0")
 	}
-	newBuckets := bucketsIncrease
+
+	newBuckets := make(map[float64]uint64) // Only use in h.Bucket defined buckets
+	lastValue := uint64(0)
+	for _, le := range h.Buckets {
+		v, ok := bucketsIncrease[le]
+		if !ok {
+			panic(fmt.Sprintf("Missing bucket %v", le))
+		}
+		if v < lastValue {
+			panic(fmt.Sprintf("Invalid bucket %v, bucket value is smaller than a bucket before", le))
+		}
+		newBuckets[le] = bucketsIncrease[le]
+		lastValue = v
+	}
 	newCount := countIncrease
 	newSum := sumIncrease
 
 	history := h.withLabelValues(labelValues)
 	if !history.IsEmpty() {
 		currentBuckets := history.Values[0].Buckets
-		for le := range currentBuckets {
+		for _, le := range h.Buckets {
 			newBuckets[le] += currentBuckets[le]
 		}
 		newCount += history.Values[0].Count

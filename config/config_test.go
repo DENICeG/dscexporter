@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func TestIsBucket(t *testing.T) {
 	metricConfig := config.Prometheus.Metrics["priming_responses"]
 	isBucket, params := metricConfig.IsBucket("ReplyLen")
 	assert.True(t, isBucket)
-	assert.Equal(t, BucketParams{Start: -1, Width: 50, Count: 0, NoneCounter: true, UseMidpoint: true}, params)
+	assert.Equal(t, BucketParams{Start: -1, Width: 50, Count: 0}, params)
 }
 
 func TestIsEliminateDimension(t *testing.T) {
@@ -58,6 +59,16 @@ func TestGetLogLevel(t *testing.T) {
 	assert.Equal(t, slog.LevelInfo, GetLogLevel("gibtsnet"))
 }
 
+func TestBucketBorders(t *testing.T) {
+	params := BucketParams{
+		Start: 31,
+		Width: 32,
+		Count: 100,
+	}
+	expectedBucketBorders := prometheus.LinearBuckets(float64(params.Start), float64(params.Width), params.Count)
+	assert.Equal(t, expectedBucketBorders, params.Buckets())
+}
+
 func TestConfig(t *testing.T) {
 
 	config := ParseConfig("./testdata/config.yaml")
@@ -94,10 +105,8 @@ func TestConfig(t *testing.T) {
 						"ReplyLen": Aggregation{
 							Type: "Bucket",
 							Params: map[string]interface{}{
-								"start":        int64(-1),
-								"width":        uint64(50),
-								"none_counter": true,
-								"use_midpoint": true,
+								"start": int64(-1),
+								"width": uint64(50),
 							},
 						},
 					},

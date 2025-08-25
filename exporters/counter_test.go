@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func prepare() (counterVec *CounterVec, labelValues LabelValues) {
+func prepareCounterVec() (counterVec *CounterVec, labelValues LabelValues) {
 	desc := prometheus.NewDesc(
 		"metric",
 		"help",
@@ -25,7 +25,7 @@ func prepare() (counterVec *CounterVec, labelValues LabelValues) {
 	return
 }
 
-func collectValues(ch chan prometheus.Metric) []prometheus.Metric {
+func collectValues(ch <-chan prometheus.Metric) []prometheus.Metric {
 	metrics := make([]prometheus.Metric, 0)
 	for metric := range ch {
 		metrics = append(metrics, metric)
@@ -40,7 +40,7 @@ func TestAddToCounterHistory(t *testing.T) {
 			WindowSize: 3,
 		},
 	})
-	counterVec, labelValues := prepare()
+	counterVec, labelValues := prepareCounterVec()
 
 	now := time.Now()
 	counterVec.Add(labelValues, 10, now.Add(-3*time.Minute))
@@ -64,23 +64,26 @@ func TestAddToCounterHistory(t *testing.T) {
 	)
 }
 
-func TestCollect(t *testing.T) {
+func TestCollectCounter(t *testing.T) {
 	SetConf(&config.Config{
 		Prometheus: config.PrometheusConfig{
 			Timestamps: true,
 			WindowSize: 3,
 		},
 	})
-	counterVec, labelValues := prepare()
+	counterVec, labelValues := prepareCounterVec()
 	now := time.Now()
 	counterVec.Add(labelValues, 10, now.Add(-1*time.Minute))
 	counterVec.Add(labelValues, 10, now)
 
 	ch := make(chan prometheus.Metric)
-	go counterVec.Collect(ch)
+	go func() {
+		counterVec.Collect(ch)
+		close(ch)
+	}()
 
 	metrics := collectValues(ch)
-	assert.Equal(t, 2, metrics)
+	assert.Equal(t, 2, len(metrics))
 }
 
 func TestCollectToOld(t *testing.T) {
@@ -91,14 +94,17 @@ func TestCollectToOld(t *testing.T) {
 		},
 	})
 
-	counterVec, labelValues := prepare()
+	counterVec, labelValues := prepareCounterVec()
 	now := time.Now()
-	counterVec.Add(labelValues, 10, now.Add(-4*time.Minute)) // Metric older than 3 Minutes, so its not collected
+	counterVec.Add(labelValues, 10, now.Add(-4*time.Minute)) // Metric older than 3 Minutes (configured via WindowSize), so its not collected
 	counterVec.Add(labelValues, 10, now.Add(-2*time.Minute))
 
 	ch := make(chan prometheus.Metric)
-	go counterVec.Collect(ch)
+	go func() {
+		counterVec.Collect(ch)
+		close(ch)
+	}()
 
 	metrics := collectValues(ch)
-	assert.Equal(t, 1, metrics)
+	assert.Equal(t, 1, len(metrics))
 }

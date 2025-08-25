@@ -89,11 +89,17 @@ func GetLogLevel(logLevelString string) slog.Level {
 }
 
 type BucketParams struct {
-	Start       int
-	Width       int
-	Count       int
-	NoneCounter bool // Remove
-	UseMidpoint bool
+	Start int
+	Width int
+	Count int
+}
+
+func (b *BucketParams) Buckets() []float64 {
+	buckets := make([]float64, 0)
+	for i := 0.0; i < float64(b.Count); i++ {
+		buckets = append(buckets, float64(b.Start)+float64(b.Width)*i)
+	}
+	return buckets
 }
 
 func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
@@ -103,11 +109,9 @@ func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
 	}
 	return true,
 		BucketParams{
-			Start:       toInt(aggregation.Params["start"]),
-			Width:       toInt(aggregation.Params["width"]),
-			Count:       toInt(aggregation.Params["count"]),
-			NoneCounter: toBool(aggregation.Params["none_counter"]),
-			UseMidpoint: toBool(aggregation.Params["use_midpoint"]),
+			Start: toInt(aggregation.Params["start"]),
+			Width: toInt(aggregation.Params["width"]),
+			Count: toInt(aggregation.Params["count"]),
 		}
 }
 
