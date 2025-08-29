@@ -69,6 +69,17 @@ func TestBucketBorders(t *testing.T) {
 	assert.Equal(t, expectedBucketBorders, params.Buckets())
 }
 
+func TestIsInTimeWindow(t *testing.T) {
+	promConfig := PrometheusConfig{
+		Metrics:    map[string]MetricConfig{},
+		Port:       2112,
+		Timestamps: true,
+		WindowSize: 5,
+	}
+	assert.True(t, promConfig.IsInTimeWindow(time.Now().Add(-4*time.Minute+time.Second)))
+	assert.False(t, promConfig.IsInTimeWindow(time.Now().Add(-5*time.Minute-1*time.Second)))
+}
+
 func TestConfig(t *testing.T) {
 
 	config := ParseConfig("./testdata/config.yaml")

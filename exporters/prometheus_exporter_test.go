@@ -88,9 +88,11 @@ func TestPrometheusExporter(t *testing.T) {
 
 	go prometheusExporter.StartPrometheusExporter()
 
+	now := time.Now()
+
 	//Export dsc file and check if its correctly exported
 	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", time.Now().Add(-time.Minute))
-	prometheusExporter.ExportDSCData(dscData)
+	prometheusExporter.ExportDSCData(dscData, now.Add(-1*time.Minute))
 
 	metrics := getMetrics(t, config)
 	expected_metrics, err := os.ReadFile("./testdata/expected_metrics.txt")
@@ -99,14 +101,15 @@ func TestPrometheusExporter(t *testing.T) {
 
 	//Export another dsc file and check if its correctly exported too
 	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", time.Now())
-	prometheusExporter.ExportDSCData(dscData2)
+	prometheusExporter.ExportDSCData(dscData2, now)
 
 	metrics = getMetrics(t, config)
-	fmt.Println(metrics)
 	expected_metrics, err = os.ReadFile("./testdata/expected_metrics2.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
 }
+
+//TODO Test with timestamp
 
 func TestNewPrometheusExporter(t *testing.T) {
 	config := config.ParseConfig("./testdata/config.yaml")

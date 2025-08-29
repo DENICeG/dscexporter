@@ -1,0 +1,6 @@
+data: ./testdata/tmp/
+remove: true
+port: 2113
+prometheus:
+  timestamps: false
+  windowsize: 5

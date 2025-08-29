@@ -232,7 +232,7 @@ func (pe *PrometheusExporter) ExportCounter(dataset *dscparser.Dataset, location
 	}
 }
 
-func (pe *PrometheusExporter) IncreaseParsedFiles(location string, nameserver string, timestamp int64) {
+func (pe *PrometheusExporter) IncreaseParsedFiles(location string, nameserver string, timestamp time.Time) {
 	metricName := "dsc_exporter_parsed_files"
 	counterVec, ok := pe.Counters[metricName]
 	if !ok {
@@ -245,10 +245,10 @@ func (pe *PrometheusExporter) IncreaseParsedFiles(location string, nameserver st
 		Location:   location,
 		Nameserver: nameserver,
 	}
-	counterVec.Add(labelValues, 1, time.Unix(timestamp, 0))
+	counterVec.Add(labelValues, 1, timestamp)
 }
 
-func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
+func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData, stopTime time.Time) {
 	pe.mutex.Lock()
 	defer pe.mutex.Unlock()
 
@@ -266,9 +266,7 @@ func (pe *PrometheusExporter) ExportDSCData(dscData *dscparser.DSCData) {
 			pe.ExportCounter(&dataset, dscData.Location, dscData.NameServer)
 		}
 	}
-
-	timestamp := dscData.Datasets[0].StopTime
-	pe.IncreaseParsedFiles(dscData.Location, dscData.NameServer, timestamp)
+	pe.IncreaseParsedFiles(dscData.Location, dscData.NameServer, stopTime)
 }
 
 func (pe *PrometheusExporter) StartPrometheusExporter() {

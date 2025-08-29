@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -63,18 +66,69 @@ func getMetrics(t *testing.T, config config.Config) string {
 	return string(body)
 }
 
+func copyDSCFiles(t *testing.T) {
+
+	os.RemoveAll("./testdata/tmp/")
+	config := config.ParseConfigText([]byte("data: ./testdata/dsc-data"))
+	dscFiles := ListDSCFiles(config)
+
+	now := time.Now()
+	newestTestData := time.Unix(1741170600, 0)
+	for _, dscFile := range dscFiles {
+
+		fileContent, err := os.ReadFile(dscFile.FilePath)
+		assert.NoError(t, err)
+		content := string(fileContent)
+
+		diff := newestTestData.Sub(dscFile.StopTime)
+		newStopTime := now.Add(-diff)
+
+		content = strings.ReplaceAll(
+			content,
+			fmt.Sprintf("start_time=\"%d\"", dscFile.StopTime.Unix()-60),
+			fmt.Sprintf("start_time=\"%d\"", newStopTime.Unix()-60),
+		)
+		content = strings.ReplaceAll(
+			content,
+			fmt.Sprintf("stop_time=\"%d\"", dscFile.StopTime.Unix()),
+			fmt.Sprintf("stop_time=\"%d\"", newStopTime.Unix()),
+		)
+
+		newFilePath := fmt.Sprintf("./testdata/tmp/%s/%s/%d.dscdata.xml", dscFile.Location, dscFile.Nameserver, newStopTime.Unix())
+		dir := filepath.Dir(newFilePath)
+		err = os.MkdirAll(dir, os.ModePerm)
+		assert.NoError(t, err)
+
+		file, err := os.Create(newFilePath)
+		assert.NoError(t, err)
+		defer file.Close()
+
+		file.WriteString(content)
+		file.Sync()
+	}
+}
+
 func TestReadAndExportDir(t *testing.T) {
-	config := config.ParseConfigText([]byte("data: ./testdata/dsc-data\nremove: false\nport: 2113"))
-	exporters.SetConf(&config)
+	copyDSCFiles(t)
+
+	dscFilesBeforeRun := ListDSCFiles(config.ParseConfigText([]byte("data: ./testdata/tmp")))
+	assert.Len(t, dscFilesBeforeRun, 4)
+
+	conf := config.ParseConfig("./testdata/config.yml")
+	exporters.SetConf(&conf)
 
 	prometheusExporter := exporters.NewPrometheusExporter()
 	go prometheusExporter.StartPrometheusExporter()
 
-	ReadAndExportDir(config, prometheusExporter)
+	ReadAndExportDir(conf, prometheusExporter)
 
-	metrics := getMetrics(t, config)
+	metrics := getMetrics(t, conf)
 
-	assert.Contains(t, metrics, `dsc_exporter_parsed_files{loc="loc1",ns="ns-1.loc1.de"} 2`)
-	assert.Contains(t, metrics, `dsc_exporter_parsed_files{loc="loc1",ns="ns-2.loc1.de"} 1`)
-	assert.Contains(t, metrics, `dsc_exporter_parsed_files{loc="loc2",ns="ns-1.loc2.de"} 1`)
+	expectedMetrics, err := os.ReadFile("./testdata/expected_metrics.txt")
+	assert.NoError(t, err)
+
+	assert.Equal(t, string(expectedMetrics), metrics)
+
+	dscFilesAfterRun := ListDSCFiles(config.ParseConfigText([]byte("data: ./testdata/tmp")))
+	assert.Len(t, dscFilesAfterRun, 0)
 }

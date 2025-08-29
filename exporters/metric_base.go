@@ -39,6 +39,9 @@ func (h *WindowedHistory[T]) IsEmpty() bool {
 }
 
 func (h *WindowedHistory[T]) AddValue(value T) {
+	if !h.IsEmpty() && h.Values[0].GetTimestamp().After(value.GetTimestamp()) {
+		return // Out of order is discarded
+	}
 	h.Values = slices.Insert(h.Values, 0, value)
 	if len(h.Values) > Config.Prometheus.WindowSize {
 		h.Values = h.Values[:Config.Prometheus.WindowSize]
