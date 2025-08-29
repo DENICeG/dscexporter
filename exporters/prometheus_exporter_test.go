@@ -78,38 +78,69 @@ func TestCalculateBuckets(t *testing.T) {
 // 	AddCounter(metricIdentifier, desc, 5.0, 1755506438)
 // }
 
-func TestPrometheusExporter(t *testing.T) {
+func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 
-	config := config.ParseConfig("./testdata/config.yaml")
-	SetConf(&config)
+	conf := config.ParseConfig("./testdata/config.yaml")
+	SetConf(&conf)
 
-	//TODO: Fix tests
 	prometheusExporter := NewPrometheusExporter()
-
 	go prometheusExporter.StartPrometheusExporter()
 
-	now := time.Now()
+	time.Sleep(time.Second)
+
+	lastFullMin := config.GetLastFullMin()
 
 	//Export dsc file and check if its correctly exported
-	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", time.Now().Add(-time.Minute))
-	prometheusExporter.ExportDSCData(dscData, now.Add(-1*time.Minute))
+	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-time.Minute))
+	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-1*time.Minute))
 
-	metrics := getMetrics(t, config)
-	expected_metrics, err := os.ReadFile("./testdata/expected_metrics.txt")
+	metrics := getMetrics(t, conf)
+	expected_metrics, err := os.ReadFile("./testdata/NoTimestamp/expected_metrics.txt")
 	assert.NoError(t, err)
-	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
+	assert.Equal(t, string(expected_metrics), metrics)
 
 	//Export another dsc file and check if its correctly exported too
-	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", time.Now())
-	prometheusExporter.ExportDSCData(dscData2, now)
+	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", lastFullMin)
+	prometheusExporter.ExportDSCData(dscData2, lastFullMin)
 
-	metrics = getMetrics(t, config)
-	expected_metrics, err = os.ReadFile("./testdata/expected_metrics2.txt")
+	metrics = getMetrics(t, conf)
+	expected_metrics, err = os.ReadFile("./testdata/NoTimestamp/expected_metrics2.txt")
 	assert.NoError(t, err)
-	assert.Equal(t, sortMetrics(string(expected_metrics)), sortMetrics(metrics))
+	assert.Equal(t, string(expected_metrics), metrics)
 }
 
-//TODO Test with timestamp
+func TestPrometheusExporterWithTimestamps(t *testing.T) {
+
+	conf := config.ParseConfig("./testdata/config.yaml")
+	conf.Prometheus.Timestamps = true
+	SetConf(&conf)
+
+	prometheusExporter := NewPrometheusExporter()
+	go prometheusExporter.StartPrometheusExporter()
+
+	lastFullMin := config.GetLastFullMin()
+
+	//DSC File to old, so its not collected
+	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-3*time.Minute-time.Second))
+	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-3*time.Minute))
+
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-2*time.Minute))
+	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-2*time.Minute))
+
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-1*time.Minute))
+	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-1*time.Minute))
+
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", lastFullMin)
+	prometheusExporter.ExportDSCData(dscData, lastFullMin)
+
+	metrics := getMetrics(t, conf)
+	expected_metrics, err := os.ReadFile("./testdata/Timestamp/expected_metrics.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, string(expected_metrics), metrics)
+}
+
+//TODO: Test with timestamp
+//TODO: Check order of metrics
 
 func TestNewPrometheusExporter(t *testing.T) {
 	config := config.ParseConfig("./testdata/config.yaml")

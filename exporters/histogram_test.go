@@ -35,11 +35,11 @@ func TestAddToHistogramHistory(t *testing.T) {
 	})
 	histogramVec, labelValues := prepareHistgramVec()
 
-	now := time.Now()
-	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, now.Add(-3*time.Minute))
-	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, now.Add(-2*time.Minute))
-	histogramVec.Add(labelValues, map[float64]uint64{10: 0, 20: 1}, 1, 20, now.Add(-1*time.Minute))
-	histogramVec.Add(labelValues, map[float64]uint64{10: 1, 20: 1}, 1, 10, now)
+	lastFullMin := config.GetLastFullMin()
+	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, lastFullMin.Add(-3*time.Minute))
+	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, lastFullMin.Add(-2*time.Minute))
+	histogramVec.Add(labelValues, map[float64]uint64{10: 0, 20: 1}, 1, 20, lastFullMin.Add(-1*time.Minute))
+	histogramVec.Add(labelValues, map[float64]uint64{10: 1, 20: 1}, 1, 10, lastFullMin)
 
 	history := histogramVec.withLabelValues(labelValues)
 	assert.Equal(t,
@@ -47,17 +47,17 @@ func TestAddToHistogramHistory(t *testing.T) {
 			Buckets:   map[float64]uint64{10: 21, 20: 42},
 			Count:     62,
 			Sum:       1230,
-			Timestamp: now,
+			Timestamp: lastFullMin,
 		}, {
 			Buckets:   map[float64]uint64{10: 20, 20: 41},
 			Count:     61,
 			Sum:       1220,
-			Timestamp: now.Add(-1 * time.Minute),
+			Timestamp: lastFullMin.Add(-1 * time.Minute),
 		}, {
 			Buckets:   map[float64]uint64{10: 20, 20: 40},
 			Count:     60,
 			Sum:       1200,
-			Timestamp: now.Add(-2 * time.Minute),
+			Timestamp: lastFullMin.Add(-2 * time.Minute),
 		}},
 		history.Values,
 	)
@@ -78,9 +78,9 @@ func TestAddBadBucketsToHistogramHistory(t *testing.T) {
 		}
 	}()
 
-	now := time.Now()
-	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, now.Add(-1*time.Minute))
-	histogramVec.Add(labelValues, map[float64]uint64{20: 10}, 10, 200, now)
+	lastFullMin := config.GetLastFullMin()
+	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, lastFullMin.Add(-1*time.Minute))
+	histogramVec.Add(labelValues, map[float64]uint64{20: 10}, 10, 200, lastFullMin)
 }
 
 func TestCollectHistogramVec(t *testing.T) {
@@ -91,9 +91,10 @@ func TestCollectHistogramVec(t *testing.T) {
 		},
 	})
 	histogramVec, labelValues := prepareHistgramVec()
-	now := time.Now()
-	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, now.Add(-1*time.Minute))
-	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, now)
+
+	lastFullMin := config.GetLastFullMin()
+	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, lastFullMin.Add(-1*time.Minute))
+	histogramVec.Add(labelValues, map[float64]uint64{10: 10, 20: 20}, 30, 600, lastFullMin)
 
 	ch := make(chan prometheus.Metric)
 	go func() {

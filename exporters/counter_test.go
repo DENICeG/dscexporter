@@ -42,23 +42,23 @@ func TestAddToCounterHistory(t *testing.T) {
 	})
 	counterVec, labelValues := prepareCounterVec()
 
-	now := time.Now()
-	counterVec.Add(labelValues, 10, now.Add(-3*time.Minute))
-	counterVec.Add(labelValues, 10, now.Add(-2*time.Minute))
-	counterVec.Add(labelValues, 10, now.Add(-1*time.Minute))
-	counterVec.Add(labelValues, 10, now)
+	lastFullMin := config.GetLastFullMin()
+	counterVec.Add(labelValues, 10, lastFullMin.Add(-3*time.Minute))
+	counterVec.Add(labelValues, 10, lastFullMin.Add(-2*time.Minute))
+	counterVec.Add(labelValues, 10, lastFullMin.Add(-1*time.Minute))
+	counterVec.Add(labelValues, 10, lastFullMin)
 
 	history := counterVec.withLabelValues(labelValues)
 	assert.Equal(t,
 		[]CounterValue{{
 			Value:     40,
-			Timestamp: now,
+			Timestamp: lastFullMin,
 		}, {
 			Value:     30,
-			Timestamp: now.Add(-1 * time.Minute),
+			Timestamp: lastFullMin.Add(-1 * time.Minute),
 		}, {
 			Value:     20,
-			Timestamp: now.Add(-2 * time.Minute),
+			Timestamp: lastFullMin.Add(-2 * time.Minute),
 		}},
 		history.Values,
 	)
@@ -72,9 +72,9 @@ func TestCollectCounter(t *testing.T) {
 		},
 	})
 	counterVec, labelValues := prepareCounterVec()
-	now := time.Now()
-	counterVec.Add(labelValues, 10, now.Add(-1*time.Minute))
-	counterVec.Add(labelValues, 10, now)
+	lastFullMin := config.GetLastFullMin()
+	counterVec.Add(labelValues, 10, lastFullMin.Add(-1*time.Minute))
+	counterVec.Add(labelValues, 10, lastFullMin)
 
 	ch := make(chan prometheus.Metric)
 	go func() {
@@ -95,9 +95,8 @@ func TestCollectToOld(t *testing.T) {
 	})
 
 	counterVec, labelValues := prepareCounterVec()
-	now := time.Now()
-	counterVec.Add(labelValues, 10, now.Add(-4*time.Minute)) // Metric older than 3 Minutes (configured via WindowSize), so its not collected
-	counterVec.Add(labelValues, 10, now.Add(-2*time.Minute))
+	lastFullMin := config.GetLastFullMin()
+	counterVec.Add(labelValues, 10, lastFullMin.Add(-3*time.Minute)) // Metric older than 3 Minutes (configured via WindowSize), so its not collected
 
 	ch := make(chan prometheus.Metric)
 	go func() {
@@ -106,5 +105,5 @@ func TestCollectToOld(t *testing.T) {
 	}()
 
 	metrics := collectValues(ch)
-	assert.Equal(t, 1, len(metrics))
+	assert.Equal(t, 0, len(metrics))
 }

@@ -287,5 +287,6 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 	handler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 
 	http.Handle("/metrics", handler)
-	http.ListenAndServe(fmt.Sprintf(":%d", Config.Prometheus.Port), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", Config.Prometheus.Port), nil)
+	config.CheckError(err)
 }

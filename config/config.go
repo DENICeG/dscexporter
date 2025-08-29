@@ -152,7 +152,7 @@ type Aggregation struct {
 	Params map[string]interface{} `yaml:"params"`
 }
 
-func checkError(err error) {
+func CheckError(err error) {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -170,14 +170,19 @@ func ParseConfigText(content []byte) Config {
 	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort, Timestamps: DefaultTimestamps, WindowSize: DefaultWindowSize}
 
 	err := yaml.Unmarshal(content, &config)
-	checkError(err)
+	CheckError(err)
 
 	return config
 }
 
 func ParseConfig(path string) Config {
 	fileContent, err := os.ReadFile(path)
-	checkError(err)
+	CheckError(err)
 
 	return ParseConfigText(fileContent)
+}
+
+func GetLastFullMin() time.Time {
+	nowUnix := time.Now().Unix()
+	return time.Unix(nowUnix-nowUnix%60, 0)
 }

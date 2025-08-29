@@ -69,10 +69,10 @@ func getMetrics(t *testing.T, config config.Config) string {
 func copyDSCFiles(t *testing.T) {
 
 	os.RemoveAll("./testdata/tmp/")
-	config := config.ParseConfigText([]byte("data: ./testdata/dsc-data"))
-	dscFiles := ListDSCFiles(config)
+	conf := config.ParseConfigText([]byte("data: ./testdata/dsc-data"))
+	dscFiles := ListDSCFiles(conf)
 
-	now := time.Now()
+	lastFullMin := config.GetLastFullMin()
 	newestTestData := time.Unix(1741170600, 0)
 	for _, dscFile := range dscFiles {
 
@@ -81,7 +81,7 @@ func copyDSCFiles(t *testing.T) {
 		content := string(fileContent)
 
 		diff := newestTestData.Sub(dscFile.StopTime)
-		newStopTime := now.Add(-diff)
+		newStopTime := lastFullMin.Add(-diff)
 
 		content = strings.ReplaceAll(
 			content,
