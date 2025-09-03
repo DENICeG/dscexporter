@@ -84,9 +84,8 @@ func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 	SetConf(&conf)
 
 	prometheusExporter := NewPrometheusExporter()
-	go prometheusExporter.StartPrometheusExporter()
-
-	time.Sleep(time.Second)
+	prometheusExporter.StartPrometheusExporter()
+	defer prometheusExporter.ShutdownPrometheusExporter()
 
 	lastFullMin := config.GetLastFullMin()
 
@@ -116,7 +115,8 @@ func TestPrometheusExporterWithTimestamps(t *testing.T) {
 	SetConf(&conf)
 
 	prometheusExporter := NewPrometheusExporter()
-	go prometheusExporter.StartPrometheusExporter()
+	prometheusExporter.StartPrometheusExporter()
+	defer prometheusExporter.ShutdownPrometheusExporter()
 
 	lastFullMin := config.GetLastFullMin()
 
@@ -134,18 +134,30 @@ func TestPrometheusExporterWithTimestamps(t *testing.T) {
 	prometheusExporter.ExportDSCData(dscData, lastFullMin)
 
 	metrics := getMetrics(t, conf)
-	expected_metrics, err := os.ReadFile("./testdata/Timestamp/expected_metrics.txt")
-	assert.NoError(t, err)
-	assert.Equal(t, string(expected_metrics), metrics)
-}
+	fmt.Println(metrics)
 
-//TODO: Test with timestamp
-//TODO: Check order of metrics
+	expected_metrics_bytes, err := os.ReadFile("./testdata/Timestamp/expected_metrics.txt")
+	assert.NoError(t, err)
+	expected_metrics := string(expected_metrics_bytes)
+	expected_metrics = strings.ReplaceAll(expected_metrics, "[now]", fmt.Sprintf("%d", lastFullMin.UnixMilli()))
+	expected_metrics = strings.ReplaceAll(expected_metrics, "[-1m]", fmt.Sprintf("%d", lastFullMin.Add(-1*time.Minute).UnixMilli()))
+	expected_metrics = strings.ReplaceAll(expected_metrics, "[-2m]", fmt.Sprintf("%d", lastFullMin.Add(-2*time.Minute).UnixMilli()))
+
+	fmt.Println()
+	fmt.Println(expected_metrics)
+
+	assert.Equal(t, expected_metrics, metrics)
+}
 
 func TestNewPrometheusExporter(t *testing.T) {
 	config := config.ParseConfig("./testdata/config.yaml")
 	SetConf(&config)
 	//Shouldnt panic when creating multiple Exporters
-	NewPrometheusExporter()
-	NewPrometheusExporter()
+	exporter := NewPrometheusExporter()
+	exporter.StartPrometheusExporter()
+	exporter.ShutdownPrometheusExporter()
+
+	exporter2 := NewPrometheusExporter()
+	exporter2.StartPrometheusExporter()
+	exporter2.ShutdownPrometheusExporter()
 }

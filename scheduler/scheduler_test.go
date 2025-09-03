@@ -118,7 +118,8 @@ func TestReadAndExportDir(t *testing.T) {
 	exporters.SetConf(&conf)
 
 	prometheusExporter := exporters.NewPrometheusExporter()
-	go prometheusExporter.StartPrometheusExporter()
+	prometheusExporter.StartPrometheusExporter()
+	defer prometheusExporter.ShutdownPrometheusExporter()
 
 	ReadAndExportDir(conf, prometheusExporter)
 

@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -30,6 +31,7 @@ type PrometheusExporter struct {
 	Counters   map[string]*CounterVec
 	Histograms map[string]*HistogramVec
 	mutex      sync.Mutex // Mutex to make sure that metrics are not queried while a DSC file gets parsed
+	Server     *http.Server
 }
 
 func NewPrometheusExporter() *PrometheusExporter {
@@ -286,7 +288,25 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 
 	handler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 
-	http.Handle("/metrics", handler)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", Config.Prometheus.Port), nil)
-	config.CheckError(err)
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", handler)
+
+	pe.Server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", Config.Prometheus.Port),
+		Handler: mux,
+	}
+
+	go func() {
+		if err := pe.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Prometheus Handler error", "error", err)
+		}
+	}()
+
+}
+
+func (pe *PrometheusExporter) ShutdownPrometheusExporter() {
+	slog.Info("Shutting down prometheus exporter")
+	if err := pe.Server.Shutdown(context.Background()); err != nil {
+		slog.Error("Prometheus Handler error while shutting down", "error", err)
+	}
 }

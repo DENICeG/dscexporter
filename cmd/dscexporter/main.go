@@ -85,7 +85,8 @@ func main() {
 
 	exporters.SetConf(&conf)
 	prometheusExporter := exporters.NewPrometheusExporter()
-	go scheduler.Run(conf, prometheusExporter, scheduler.ReadAndExportDir)
-
 	prometheusExporter.StartPrometheusExporter()
+	defer prometheusExporter.ShutdownPrometheusExporter()
+
+	scheduler.Run(conf, prometheusExporter, scheduler.ReadAndExportDir)
 }

@@ -76,7 +76,7 @@ func TestIsInTimeWindow(t *testing.T) {
 		Timestamps: true,
 		WindowSize: 5,
 	}
-	assert.True(t, promConfig.IsInTimeWindow(time.Now().Add(-4*time.Minute+time.Second)))
+	assert.True(t, promConfig.IsInTimeWindow(time.Now().Add(-5*time.Minute+time.Second)))
 	assert.False(t, promConfig.IsInTimeWindow(time.Now().Add(-5*time.Minute-1*time.Second)))
 }
 
