@@ -133,3 +133,12 @@ func TestReadAndExportDir(t *testing.T) {
 	dscFilesAfterRun := ListDSCFiles(config.ParseConfigText([]byte("data: ./testdata/tmp")))
 	assert.Len(t, dscFilesAfterRun, 0)
 }
+
+func TestSortFilesList(t *testing.T) {
+	files, err := os.ReadDir("./testdata/dsc-data/loc1/ns-1.loc1.de/")
+	assert.NoError(t, err)
+
+	SortFilesList(files)
+	assert.Equal(t, "1741170540.dscdata.xml", files[0].Name())
+	assert.Equal(t, "1741170600.dscdata.xml", files[1].Name())
+}

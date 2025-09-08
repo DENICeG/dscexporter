@@ -31,6 +31,13 @@ type DSCFile struct {
 	FilePath   string
 }
 
+func SortFilesList(files []os.DirEntry) {
+	//Sort dscfiles from oldest -> newest
+	slices.SortFunc(files, func(a, b fs.DirEntry) int {
+		return strings.Compare(a.Name(), b.Name())
+	})
+}
+
 func ListDSCFiles(config config.Config) []DSCFile {
 
 	dscFiles := make([]DSCFile, 0)
@@ -54,10 +61,7 @@ func ListDSCFiles(config config.Config) []DSCFile {
 			nsFolderPath := filepath.Join(locationFolderPath, nsFolder.Name())
 			files, _ := os.ReadDir(nsFolderPath)
 
-			//Sort dscfiles from oldest -> newest
-			slices.SortFunc(files, func(a, b fs.DirEntry) int {
-				return strings.Compare(a.Name(), b.Name())
-			})
+			SortFilesList(files)
 
 			for _, file := range files {
 

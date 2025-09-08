@@ -64,10 +64,10 @@ func (mv *MetricVec[T]) Describe(ch chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(mv, ch)
 }
 
-func (mv *MetricVec[T]) collectValue(ch chan<- prometheus.Metric, labelValues LabelValues, value T) {
+func (mv *MetricVec[T]) collectValue(ch chan<- prometheus.Metric, labelValues LabelValues, value T, timestamp time.Time) {
 	metric := value.GetMetric(labelValues, mv.Desc)
 	if Config.Prometheus.Timestamps {
-		ch <- prometheus.NewMetricWithTimestamp(value.GetTimestamp(), metric)
+		ch <- prometheus.NewMetricWithTimestamp(timestamp, metric)
 	} else {
 		ch <- metric
 	}
@@ -76,14 +76,28 @@ func (mv *MetricVec[T]) collectValue(ch chan<- prometheus.Metric, labelValues La
 func (mv *MetricVec[T]) Collect(ch chan<- prometheus.Metric) {
 	for labelValues, history := range mv.Values {
 		if Config.Prometheus.Timestamps {
-			for _, value := range history.Values {
-				if Config.Prometheus.IsInTimeWindow(value.GetTimestamp()) {
-					mv.collectValue(ch, labelValues, value)
+
+			for i := len(history.Values) - 1; i >= 0; i-- {
+				value := history.Values[i]
+				// Lücken füllen
+				if !Config.Prometheus.IsInTimeWindow(value.GetTimestamp()) {
+					continue
 				}
+
+				if i+1 < len(history.Values) && Config.Prometheus.IsInTimeWindow(history.Values[i+1].GetTimestamp()) {
+					olderValue := history.Values[i+1]
+					diff := value.GetTimestamp().Sub(olderValue.GetTimestamp())
+					minutesDiff := diff.Minutes()
+					for j := 1.0; j < minutesDiff; j++ {
+						gapTimestamp := olderValue.GetTimestamp().Add(time.Duration(j) * time.Minute)
+						mv.collectValue(ch, labelValues, olderValue, gapTimestamp)
+					}
+				}
+				mv.collectValue(ch, labelValues, value, value.GetTimestamp())
 			}
 		} else {
 			if !history.IsEmpty() && Config.Prometheus.IsInTimeWindow(history.Values[0].GetTimestamp()) {
-				mv.collectValue(ch, labelValues, history.Values[0])
+				mv.collectValue(ch, labelValues, history.Values[0], history.Values[0].GetTimestamp())
 			}
 		}
 	}
