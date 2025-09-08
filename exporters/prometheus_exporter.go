@@ -302,6 +302,7 @@ func (pe *PrometheusExporter) StartPrometheusExporter() {
 		}
 	}()
 
+	time.Sleep(1 * time.Second)
 }
 
 func (pe *PrometheusExporter) ShutdownPrometheusExporter() {

@@ -7,7 +7,6 @@ dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="filter_rece
 dsc_exporter_pcap_stats{ifname="ens2f0",loc="loc",ns="ns",pcap_stat="pkts_captured"} 16
 # HELP dsc_exporter_priming_queries_EDNSBufSiz DSC-Metric from dataset priming_queries for EDNSBufSiz
 # TYPE dsc_exporter_priming_queries_EDNSBufSiz histogram
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="-1"} 0
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="511"} 0
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="1023"} 2
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="1535"} 5
@@ -16,7 +15,6 @@ dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns"
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="tcp",loc="loc",ns="ns",le="+Inf"} 9
 dsc_exporter_priming_queries_EDNSBufSiz_sum{Transport="tcp",loc="loc",ns="ns"} 22779.5
 dsc_exporter_priming_queries_EDNSBufSiz_count{Transport="tcp",loc="loc",ns="ns"} 9
-dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="-1"} 0
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="511"} 0
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="1023"} 5
 dsc_exporter_priming_queries_EDNSBufSiz_bucket{Transport="udp",loc="loc",ns="ns",le="1535"} 8

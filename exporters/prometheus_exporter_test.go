@@ -80,7 +80,7 @@ func TestCalculateBuckets(t *testing.T) {
 
 func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 
-	conf := config.ParseConfig("./testdata/config.yaml")
+	conf := config.ParseConfig("./testdata/NoTimestamp/config.yaml")
 	SetConf(&conf)
 
 	prometheusExporter := NewPrometheusExporter()
@@ -90,7 +90,7 @@ func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 	lastFullMin := config.GetLastFullMin()
 
 	//Export dsc file and check if its correctly exported
-	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-time.Minute))
+	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/NoTimestamp/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-time.Minute))
 	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-1*time.Minute))
 
 	metrics := getMetrics(t, conf)
@@ -99,7 +99,7 @@ func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 	assert.Equal(t, string(expected_metrics), metrics)
 
 	//Export another dsc file and check if its correctly exported too
-	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", lastFullMin)
+	dscData2 := dscparser.ReadFileWithCustomTimestamp("./testdata/NoTimestamp/test_dsc_file2.xml", "loc", "ns", lastFullMin)
 	prometheusExporter.ExportDSCData(dscData2, lastFullMin)
 
 	metrics = getMetrics(t, conf)
@@ -110,8 +110,7 @@ func TestPrometheusExporterWithoutTimestamps(t *testing.T) {
 
 func TestPrometheusExporterWithTimestamps(t *testing.T) {
 
-	conf := config.ParseConfig("./testdata/config.yaml")
-	conf.Prometheus.Timestamps = true
+	conf := config.ParseConfig("./testdata/Timestamp/config.yaml")
 	SetConf(&conf)
 
 	prometheusExporter := NewPrometheusExporter()
@@ -121,20 +120,21 @@ func TestPrometheusExporterWithTimestamps(t *testing.T) {
 	lastFullMin := config.GetLastFullMin()
 
 	//DSC File to old, so its not collected
-	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-3*time.Minute-time.Second))
+	dscData := dscparser.ReadFileWithCustomTimestamp("./testdata/Timestamp/pcap_and_priming_queries.xml", "loc", "ns", lastFullMin.Add(-3*time.Minute))
 	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-3*time.Minute))
 
-	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-2*time.Minute))
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/Timestamp/only_pcap.xml", "loc", "ns", lastFullMin.Add(-2*time.Minute))
 	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-2*time.Minute))
 
-	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file.xml", "loc", "ns", lastFullMin.Add(-1*time.Minute))
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/Timestamp/only_pcap.xml", "loc", "ns", lastFullMin.Add(-1*time.Minute))
 	prometheusExporter.ExportDSCData(dscData, lastFullMin.Add(-1*time.Minute))
 
-	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/test_dsc_file2.xml", "loc", "ns", lastFullMin)
+	dscData = dscparser.ReadFileWithCustomTimestamp("./testdata/Timestamp/pcap_and_priming_queries.xml", "loc", "ns", lastFullMin)
 	prometheusExporter.ExportDSCData(dscData, lastFullMin)
 
 	metrics := getMetrics(t, conf)
-	fmt.Println(metrics)
+	// fmt.Println("Real:")
+	// fmt.Println(metrics)
 
 	expected_metrics_bytes, err := os.ReadFile("./testdata/Timestamp/expected_metrics.txt")
 	assert.NoError(t, err)
@@ -143,14 +143,15 @@ func TestPrometheusExporterWithTimestamps(t *testing.T) {
 	expected_metrics = strings.ReplaceAll(expected_metrics, "[-1m]", fmt.Sprintf("%d", lastFullMin.Add(-1*time.Minute).UnixMilli()))
 	expected_metrics = strings.ReplaceAll(expected_metrics, "[-2m]", fmt.Sprintf("%d", lastFullMin.Add(-2*time.Minute).UnixMilli()))
 
-	fmt.Println()
-	fmt.Println(expected_metrics)
+	// fmt.Println()
+	// fmt.Println("Expected:")
+	// fmt.Println(expected_metrics)
 
 	assert.Equal(t, expected_metrics, metrics)
 }
 
 func TestNewPrometheusExporter(t *testing.T) {
-	config := config.ParseConfig("./testdata/config.yaml")
+	config := config.ParseConfig("./testdata/NoTimestamp/config.yaml")
 	SetConf(&config)
 	//Shouldnt panic when creating multiple Exporters
 	exporter := NewPrometheusExporter()

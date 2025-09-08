@@ -39,8 +39,8 @@ func (h *WindowedHistory[T]) IsEmpty() bool {
 }
 
 func (h *WindowedHistory[T]) AddValue(value T) {
-	if !h.IsEmpty() && h.Values[0].GetTimestamp().After(value.GetTimestamp()) {
-		return // Out of order is discarded
+	if !h.IsEmpty() && (h.Values[0].GetTimestamp().After(value.GetTimestamp()) || h.Values[0].GetTimestamp().Equal(value.GetTimestamp())) {
+		return // Out of order is ignored
 	}
 	h.Values = slices.Insert(h.Values, 0, value)
 	if len(h.Values) > Config.Prometheus.WindowSize {
@@ -48,9 +48,20 @@ func (h *WindowedHistory[T]) AddValue(value T) {
 	}
 }
 
+func (h *WindowedHistory[T]) FindValueAtTimestamp(timestamp time.Time) int {
+	for i, value := range h.Values {
+		if value.GetTimestamp().Before(timestamp) || value.GetTimestamp().Equal(timestamp) {
+			return i
+		}
+	}
+	return -1
+}
+
 type MetricVec[T MetricValue] struct {
-	Values map[LabelValues]*WindowedHistory[T]
-	Desc   *prometheus.Desc
+	Values map[LabelValues]*WindowedHistory[T] // These values store the real values with the real timestamps.
+	// If there is no value for a specific timestamp in the dscfile, there will be no value in this array.
+	// This way the code could check whether a value has been refreshed in the last x minutes, to possibly stop exporting the value to minimize the number of active time series.
+	Desc *prometheus.Desc
 }
 
 func NewMetricVec[T MetricValue](desc *prometheus.Desc) *MetricVec[T] {
@@ -76,27 +87,28 @@ func (mv *MetricVec[T]) collectValue(ch chan<- prometheus.Metric, labelValues La
 func (mv *MetricVec[T]) Collect(ch chan<- prometheus.Metric) {
 	for labelValues, history := range mv.Values {
 		if Config.Prometheus.Timestamps {
-
-			for i := len(history.Values) - 1; i >= 0; i-- {
-				value := history.Values[i]
-				// Lücken füllen
-				if !Config.Prometheus.IsInTimeWindow(value.GetTimestamp()) {
-					continue
+			/*
+				Collects the values of the history.
+				It does it by going from the newest timestamp back in the history every minute.
+				It is not enough to just collect the values in the Values array.
+				These values contain gaps if an time series has not been increased by a dscfile.
+				So this code looks at every timestamp in the TimeWindow and exports the closest value to the timestamp.
+			*/
+			if history.IsEmpty() {
+				continue
+			}
+			newestTimestamp := history.Values[0].GetTimestamp()
+			diffInMinutes := int(time.Since(newestTimestamp).Minutes())
+			for i := 0; i < Config.Prometheus.WindowSize-diffInMinutes; i++ {
+				timestamp := newestTimestamp.Add(-time.Duration(i) * time.Minute)
+				value_index := history.FindValueAtTimestamp(timestamp)
+				if value_index >= 0 {
+					value := history.Values[value_index]
+					mv.collectValue(ch, labelValues, value, timestamp)
 				}
-
-				if i+1 < len(history.Values) && Config.Prometheus.IsInTimeWindow(history.Values[i+1].GetTimestamp()) {
-					olderValue := history.Values[i+1]
-					diff := value.GetTimestamp().Sub(olderValue.GetTimestamp())
-					minutesDiff := diff.Minutes()
-					for j := 1.0; j < minutesDiff; j++ {
-						gapTimestamp := olderValue.GetTimestamp().Add(time.Duration(j) * time.Minute)
-						mv.collectValue(ch, labelValues, olderValue, gapTimestamp)
-					}
-				}
-				mv.collectValue(ch, labelValues, value, value.GetTimestamp())
 			}
 		} else {
-			if !history.IsEmpty() && Config.Prometheus.IsInTimeWindow(history.Values[0].GetTimestamp()) {
+			if !history.IsEmpty() {
 				mv.collectValue(ch, labelValues, history.Values[0], history.Values[0].GetTimestamp())
 			}
 		}
