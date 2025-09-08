@@ -37,6 +37,23 @@ The data folder can be set via the CLI or the config file. The exporter uses the
 In the config, you can configure the datasets that the dscexporter exports and the aggregations that are run on the datasets before export.  
 For an overview of the structure of the config, see `example_config.yaml`.
 
+### Timestamps
+
+One of the most important configuration options is the `timestamps` setting.  
+The **dscexporter** supports exporting metrics *with* or *without* timestamps.  
+
+When timestamp export is enabled, the end time of the DSC files is used as the timestamp for the metrics.  
+Like aggregations or the Prometheus port, the configuration is done under the `prometheus` section.
+
+**Example:**
+```yaml
+prometheus:
+  timestamps: true
+  windowsize: 10
+```
+- timestamps: Defines whether timestamps are exported.
+- windowsize: Defines how many timestamps are exported.
+
 ### Aggregations
 
 #### Max Cells

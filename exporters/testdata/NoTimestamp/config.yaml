@@ -26,4 +26,4 @@ prometheus:
             width: 512
             count: 5
   timestamps: false
-  windowsize: 3
+  windowsize: 0

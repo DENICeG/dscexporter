@@ -95,7 +95,7 @@ prometheus:
     # client_subnet2
     # client_subnet
   timestamps: true
-  windowsize: 30
+  windowsize: 10
 
 interval: 5s
 data: /data/exporter_dsc

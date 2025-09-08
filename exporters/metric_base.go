@@ -43,8 +43,9 @@ func (h *WindowedHistory[T]) AddValue(value T) {
 		return // Out of order is ignored
 	}
 	h.Values = slices.Insert(h.Values, 0, value)
-	if len(h.Values) > Config.Prometheus.WindowSize {
-		h.Values = h.Values[:Config.Prometheus.WindowSize]
+	maxLength := max(Config.Prometheus.WindowSize, 1)
+	if len(h.Values) > maxLength {
+		h.Values = h.Values[:maxLength]
 	}
 }
 
