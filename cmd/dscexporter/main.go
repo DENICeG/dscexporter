@@ -22,12 +22,14 @@ var (
 var (
 	app = kingpin.New("dsc-exporter", "A command-line tool to export DSC files.")
 	//app.Version(fmt.Sprintf("app: %s - commit: %s - version: %s - buildtime: %s", app.Name, gitcommit, appversion, buildtime))
-	configPath = app.Flag("config", "Path to the config file").Short('c').Envar("DSC_EXPORTER_CONFIG").Required().ExistingFile()
-	data       = app.Flag("data", "Path to the data dir").Short('d').Envar("DSC_EXPORTER_DATADIR").ExistingDir()
-	logLevel   = app.Flag("log-level", "The log level (\"debug\", \"info\", \"warn\", \"error\")").Short('l').Envar("DSC_EXPORTER_LOG_LEVEL").Enum("debug", "info", "warn", "error")
-	interval   = app.Flag("interval", "The interval the exporter looks for new files").Short('i').Envar("DSC_EXPORTER_INTERVAL").Duration()
-	port       = app.Flag("port", "The port under the prometheus metrics are served").Short('p').Envar("DSC_EXPORTER_PORT").Int()
+	configPath = app.Flag("config", "Path to the config file").Short('c').Required().ExistingFile()
+	data       = app.Flag("data", "Path to the data dir").Short('d').ExistingDir()
+	logLevel   = app.Flag("log-level", "The log level (\"debug\", \"info\", \"warn\", \"error\")").Enum("debug", "info", "warn", "error")
+	interval   = app.Flag("interval", "The interval the exporter looks for new files").Short('i').Duration()
+	port       = app.Flag("port", "The port under the prometheus metrics are served").Short('p').Int()
 	remove     = app.Flag("remove", "Remove read files").Bool()
+	timestamps = app.Flag("timestamps", "Export with timestamps").Bool()
+	windowsize = app.Flag("windowsize", "Defines how many timestamps are exported").Int()
 )
 
 func argsContain(args []string, substring string) bool {
@@ -60,8 +62,14 @@ func ParamsToConfig(args []string) config.Config {
 	if hasFlagSetShort(args, "port", "p") {
 		conf.Prometheus.Port = *port
 	}
-	if hasFlagSetShort(args, "log-level", "l") {
+	if hasFlagSet(args, "log-level") {
 		conf.LogLevel = config.GetLogLevel(*logLevel)
+	}
+	if hasFlagSet(args, "windowsize") {
+		conf.Prometheus.WindowSize = *windowsize
+	}
+	if hasFlagSet(args, "timestamps") || hasFlagSet(args, "no-remove") {
+		conf.Prometheus.Timestamps = *timestamps
 	}
 	if hasFlagSet(args, "remove") || hasFlagSet(args, "no-remove") {
 		conf.RemoveReadFiles = *remove
