@@ -9,13 +9,7 @@ prometheus:
             start: 511
             width: 512
             count: 9
-    edns_version:
-      aggregations: 
-        EDNSVersion:
-          type: Filter
-          params: 
-            "0": {}
-            "none": {}
+    edns_version: {}
     idn_qname: {} 
     rd_bit: {} 
     do_bit: {} 
@@ -49,13 +43,7 @@ prometheus:
     direction_vs_ipproto: {} 
     transport_vs_qtype: {} 
     opcode: {}
-    qtype_vs_tld: 
-      aggregations: 
-        TLD: 
-          type: Filter
-          params: 
-            "de": {}
-            "localhost": {}
+    qtype_vs_tld: {}
     qr_aa_bits: {} 
     chaos_types_and_names:  
       aggregations: 
@@ -80,7 +68,7 @@ prometheus:
             start: 511
             width: 512
             count: 9
-    pcap_stats: {} 
+    pcap_stats: {}  
 
     # Not exported:
     # servfail_qname
