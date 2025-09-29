@@ -17,8 +17,8 @@ func TestReadFile(t *testing.T) {
 			Dataset{
 				XMLName:    xml.Name{Local: "array"},
 				Name:       "pcap_stats",
-				StartTime:  1741170540,
-				StopTime:   1741170600,
+				StartTime:  int64(1741170540),
+				StopTime:   int64(1741170600),
 				Dimensions: 2,
 				DimensionInfo: []DimensionInfo{
 					DimensionInfo{Number: 1, Type: "ifname"},
@@ -49,8 +49,8 @@ func TestReadFile(t *testing.T) {
 			Dataset{
 				XMLName:    xml.Name{Local: "array"},
 				Name:       "servfail_qname",
-				StartTime:  1741170540,
-				StopTime:   1741170600,
+				StartTime:  int64(1741170540),
+				StopTime:   int64(1741170600),
 				Dimensions: 2,
 				DimensionInfo: []DimensionInfo{
 					DimensionInfo{Number: 1, Type: "ALL"},

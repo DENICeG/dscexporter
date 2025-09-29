@@ -15,6 +15,8 @@ const DefaultDataDir = "/data/exporter_dsc"
 const DefaultRemoveReadFiles = false
 const DefaultPrometheusPort = 2112
 const DefaultLogLevel = slog.LevelInfo
+const DefaultTimestamps = true
+const DefaultWindowSize = 5
 
 type Config struct {
 	RemoveReadFiles bool             `yaml:"remove"`
@@ -26,8 +28,15 @@ type Config struct {
 }
 
 type PrometheusConfig struct {
-	Metrics map[string]MetricConfig `yaml:"metrics"`
-	Port    int                     `yaml:"port"`
+	Metrics    map[string]MetricConfig `yaml:"metrics"`
+	Port       int                     `yaml:"port"`
+	Timestamps bool                    `yaml:"timestamps"`
+	WindowSize int                     `yaml:"windowsize"`
+}
+
+func (p *PrometheusConfig) IsInTimeWindow(timestamp time.Time) bool {
+	endOfWindow := time.Now().Add(-time.Duration(p.WindowSize) * time.Minute)
+	return timestamp.After(endOfWindow)
 }
 
 // type DatabaseConfig struct {
@@ -80,11 +89,17 @@ func GetLogLevel(logLevelString string) slog.Level {
 }
 
 type BucketParams struct {
-	Start       int
-	Width       int
-	Count       int
-	NoneCounter bool
-	UseMidpoint bool
+	Start int
+	Width int
+	Count int
+}
+
+func (b *BucketParams) Buckets() []float64 {
+	buckets := make([]float64, 0)
+	for i := 0.0; i < float64(b.Count); i++ {
+		buckets = append(buckets, float64(b.Start)+float64(b.Width)*i)
+	}
+	return buckets
 }
 
 func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
@@ -94,11 +109,9 @@ func (mC *MetricConfig) IsBucket(label string) (bool, BucketParams) {
 	}
 	return true,
 		BucketParams{
-			Start:       toInt(aggregation.Params["start"]),
-			Width:       toInt(aggregation.Params["width"]),
-			Count:       toInt(aggregation.Params["count"]),
-			NoneCounter: toBool(aggregation.Params["none_counter"]),
-			UseMidpoint: toBool(aggregation.Params["use_midpoint"]),
+			Start: toInt(aggregation.Params["start"]),
+			Width: toInt(aggregation.Params["width"]),
+			Count: toInt(aggregation.Params["count"]),
 		}
 }
 
@@ -139,7 +152,7 @@ type Aggregation struct {
 	Params map[string]interface{} `yaml:"params"`
 }
 
-func checkError(err error) {
+func CheckError(err error) {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -154,17 +167,22 @@ func ParseConfigText(content []byte) Config {
 	config.Interval = DefaultInterval
 	config.DataDir = DefaultDataDir
 	config.LogLevel = DefaultLogLevel
-	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort}
+	config.Prometheus = PrometheusConfig{Port: DefaultPrometheusPort, Timestamps: DefaultTimestamps, WindowSize: DefaultWindowSize}
 
 	err := yaml.Unmarshal(content, &config)
-	checkError(err)
+	CheckError(err)
 
 	return config
 }
 
 func ParseConfig(path string) Config {
 	fileContent, err := os.ReadFile(path)
-	checkError(err)
+	CheckError(err)
 
 	return ParseConfigText(fileContent)
+}
+
+func GetLastFullMin() time.Time {
+	nowUnix := time.Now().Unix()
+	return time.Unix(nowUnix-nowUnix%60, 0)
 }

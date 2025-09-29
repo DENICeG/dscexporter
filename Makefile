@@ -45,4 +45,14 @@ unittests:
 	go tool cover -func=cover.out
 	go tool cover -html=cover.out -o cover.html
 
+shutdown:
+	- docker stop prometheus
+
+prometheus: shutdown
+	docker run -d --rm \
+		--name prometheus \
+		--net=host \
+		-v "$$(pwd)/testdata/prometheus.yml:/etc/prometheus/prometheus.yml" \
+		prom/prometheus
+
 test: unittests

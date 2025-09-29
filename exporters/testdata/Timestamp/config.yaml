@@ -1,0 +1,13 @@
+prometheus:
+  metrics: 
+    pcap_stats: {}
+    priming_queries: 
+     aggregations: 
+        EDNSBufSiz:
+          type: Bucket
+          params: 
+            start: 511
+            width: 512
+            count: 2
+  timestamps: true
+  windowsize: 3

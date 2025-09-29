@@ -1,6 +1,8 @@
 prometheus:
   port: 2113
   metrics: {}
+  timestamps: false
+  windowsize: 3
 
 interval: 20s
 remove: true

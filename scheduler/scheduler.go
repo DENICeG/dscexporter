@@ -2,9 +2,13 @@ package scheduler
 
 import (
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +24,25 @@ func checkError(err error) {
 	}
 }
 
-func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExporter) {
+type DSCFile struct {
+	Location   string
+	Nameserver string
+	StopTime   time.Time
+	FilePath   string
+}
+
+func SortFilesList(files []os.DirEntry) {
+	//Sort dscfiles from oldest -> newest
+	slices.SortFunc(files, func(a, b fs.DirEntry) int {
+		return strings.Compare(a.Name(), b.Name())
+	})
+}
+
+func ListDSCFiles(config config.Config) []DSCFile {
+
+	dscFiles := make([]DSCFile, 0)
+
+	fileNameRe, _ := regexp.Compile(`^(\d{10})\.dscdata\.xml$`)
 
 	locationFolders, _ := os.ReadDir(config.DataDir)
 	for _, locationFolder := range locationFolders {
@@ -37,40 +59,61 @@ func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExport
 			}
 
 			nsFolderPath := filepath.Join(locationFolderPath, nsFolder.Name())
-			dscFiles, _ := os.ReadDir(nsFolderPath)
+			files, _ := os.ReadDir(nsFolderPath)
 
-			for _, dscFile := range dscFiles {
-				if !dscFile.IsDir() && strings.HasSuffix(dscFile.Name(), ".dscdata.xml") {
+			SortFilesList(files)
 
-					exportStart := time.Now()
+			for _, file := range files {
 
-					dscFilePath := filepath.Join(nsFolderPath, dscFile.Name())
-					dscData := dscparser.ReadFile(dscFilePath, locationFolder.Name(), nsFolder.Name())
+				matches := fileNameRe.FindStringSubmatch(file.Name())
+				if !file.IsDir() && matches != nil {
 
-					stopTimeRaw := dscData.Datasets[0].StopTime
-					stopTime := time.Unix(int64(stopTimeRaw), 0)
+					dscFilePath := filepath.Join(nsFolderPath, file.Name())
 
-					exporter.ExportDSCData(dscData)
+					stopTimeRaw := matches[1]
+					stopTimeInt, err := strconv.Atoi(stopTimeRaw)
+					checkError(err)
+					stopTime := time.Unix(int64(stopTimeInt), 0)
 
-					slog.Info("Exported file",
-						slog.String("nameserver", dscData.NameServer),
-						slog.Int("stop_timestamp", stopTimeRaw),
-						slog.String("stop_time", stopTime.String()),
-						slog.String("delay", time.Since(stopTime).String()),
-						slog.String("took", time.Since(exportStart).String()),
-					)
-					//perfFile.WriteString(fmt.Sprintf("%v\n", time.Since(exportStart)))
-
-					if config.RemoveReadFiles {
-						err := os.Remove(dscFilePath)
-						checkError(err)
-					}
+					dscFiles = append(dscFiles, DSCFile{
+						Location:   locationFolder.Name(),
+						Nameserver: nsFolder.Name(),
+						FilePath:   dscFilePath,
+						StopTime:   stopTime,
+					})
 				}
 			}
 
 		}
 	}
-	//perfFile.Sync()
+	return dscFiles
+}
+
+func ReadAndExportDir(config config.Config, exporter *exporters.PrometheusExporter) {
+
+	dscFiles := ListDSCFiles(config)
+
+	for _, dscFile := range dscFiles {
+
+		exportStart := time.Now()
+		dscData := dscparser.ReadFile(dscFile.FilePath, dscFile.Location, dscFile.Nameserver)
+
+		exporter.ExportDSCData(dscData, dscFile.StopTime)
+		slog.Info("Exported file",
+			slog.String("nameserver", dscData.NameServer),
+			slog.String("stop_time", dscFile.StopTime.String()),
+			slog.String("delay", time.Since(dscFile.StopTime).String()),
+			slog.String("took", time.Since(exportStart).String()),
+		)
+		//perfFile.WriteString(fmt.Sprintf("%v\n", time.Since(exportStart)))
+
+		if config.RemoveReadFiles {
+			err := os.Remove(dscFile.FilePath)
+			checkError(err)
+		}
+
+		//perfFile.Sync()
+	}
 
 }
 

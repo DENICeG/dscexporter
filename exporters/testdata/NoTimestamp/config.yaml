@@ -22,8 +22,8 @@ prometheus:
         EDNSBufSiz:
           type: Bucket
           params: 
-            start: -1
+            start: 511
             width: 512
-            count: 6
-            none_counter: true
-            use_midpoint: true
+            count: 5
+  timestamps: false
+  windowsize: 0

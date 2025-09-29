@@ -1,5 +1,5 @@
 <dscdata>
-<array name="pcap_stats" dimensions="2" start_time="1741170480" stop_time="1741170540">
+<array name="pcap_stats" dimensions="2" start_time="1741170540" stop_time="1741170600"> <!-- Test Prometheus exporter counter, dataset is in both dsc files-->
   <dimension number="1" type="ifname"/>
   <dimension number="2" type="pcap_stat"/>
   <data>
