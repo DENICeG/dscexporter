@@ -133,8 +133,10 @@ func TestPrometheusExporterWithTimestamps(t *testing.T) {
 	prometheusExporter.ExportDSCData(dscData, lastFullMin)
 
 	metrics := getMetrics(t, conf)
+	// fmt.Println()
 	// fmt.Println("Real:")
 	// fmt.Println(metrics)
+	// fmt.Println()
 
 	expected_metrics_bytes, err := os.ReadFile("./testdata/Timestamp/expected_metrics.txt")
 	assert.NoError(t, err)

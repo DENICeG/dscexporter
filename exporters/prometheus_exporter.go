@@ -24,8 +24,8 @@ func SetConf(config *config.Config) {
 	Config = config
 }
 
-const NAMESERVER_LABEL = "ns"
-const LOCATION_LABEL = "loc"
+const NAMESERVER_LABEL = "nameserver"
+const LOCATION_LABEL = "dns_location"
 
 type PrometheusExporter struct {
 	Counters   map[string]*CounterVec
